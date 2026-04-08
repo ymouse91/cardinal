@@ -1,0 +1,17 @@
+{
+  "name": "Cardinal",
+  "short_name": "Temple Trap",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#141416",
+  "theme_color": "#141416",
+  "orientation": "landscape",
+  "icons": [
+    {
+      "src": "icon192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

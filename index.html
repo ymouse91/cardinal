@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon192.png">
+  <link rel="apple-touch-icon" href="icon192.png">
+<title>Cardinal-henkinen logiikkapeli</title>
+<style>
+  :root{
+    --bg:#141416;
+    --panel:#202126;
+    --panel2:#353840;
+    --ink:#f3efe6;
+    --muted:#bfc3cb;
+    --accent:#f0bf2c;
+    --line:#484b53;
+    --card:#f5efe5;
+    --shadow:0 8px 24px rgba(0,0,0,.28);
+    --good:#58d37b;
+    --bad:#ef5d5d;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: linear-gradient(180deg,#1b1c20,#131417 30%,#101114);
+    color:var(--ink);
+  }
+  .wrap{max-width:1440px;margin:0 auto;padding:20px}
+  h1{margin:0 0 6px;font-size:28px}
+  .sub{color:var(--muted);margin:0 0 18px}
+  .topbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+  button,select{
+    background:#2b2d33;color:var(--ink);border:1px solid #4a4d56;border-radius:12px;
+    padding:10px 14px;font-size:15px;cursor:pointer;
+  }
+  button:hover,select:hover{filter:brightness(1.08)}
+  .primary{background:#3d3520;border-color:#a67e14}
+  .layout{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:18px;align-items:start}
+  .panel{background:var(--panel);border:1px solid #34363e;border-radius:20px;box-shadow:var(--shadow)}
+  .boardPanel{padding:16px;width:max-content}
+  .cluePanel{padding:16px;min-width:0}
+  .sectionTitle{font-size:18px;font-weight:700;margin:0 0 12px}
+  .gameArea{display:flex;gap:16px;align-items:flex-start;justify-content:flex-start;width:max-content}
+  .boardWrap{display:grid;gap:10px;justify-content:start;width:max-content}
+  .board{
+    display:grid;grid-template-columns:repeat(4,92px);grid-template-rows:repeat(4,92px);gap:8px;
+    background:#111216;padding:12px;border-radius:18px;border:2px solid #e8e2d8;
+  
+  width: calc(4 * 92px + 3 * 8px + 24px);
+  height: calc(4 * 92px + 3 * 8px + 24px);
+}
+  .slot{width:92px;height:92px;border-radius:14px;background:#0b0c0f;border:1px dashed #575b67;display:flex;align-items:center;justify-content:center}
+  .slot.filled{border-style:solid;background:#111215}
+  .slot.fixed{border-color:#f0bf2c; box-shadow: inset 0 0 0 2px rgba(240,191,44,.35)}
+  .tray{display:grid;grid-template-columns:repeat(4,92px);gap:8px;justify-content:start;background:#111216;padding:12px;border-radius:18px;border:1px solid #34363e;width:max-content}
+  .card{width:92px;height:92px;border-radius:12px;background:var(--card);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.2);border:1px solid rgba(0,0,0,.08);cursor:pointer;position:relative}
+  .card svg{width:84px;height:84px;overflow:visible}
+  .card.selected{outline:4px solid var(--accent);outline-offset:2px}
+  .mini{width:42px;height:42px;border-radius:9px}
+  .mini svg{width:36px;height:36px}
+  .legend{font-size:13px;color:var(--muted)}
+  .status{padding:12px 14px;border-radius:14px;background:var(--panel2);min-height:50px}
+  .ok{color:var(--good);font-weight:700}
+  .err{color:var(--bad);font-weight:700}
+  .clues{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start}
+  .clue{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;padding:10px 8px;border-radius:14px;background:var(--panel2);border:1px solid #3d4048;min-width:68px;min-height:84px;cursor:pointer;user-select:none;transition:opacity .15s ease, filter .15s ease}
+  .clue.dimmed{opacity:.3;filter:saturate(.35)}
+  .clue .icons{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;min-width:auto;flex:0 0 auto}
+  .clue.row .icons,.clue.col .icons{min-width:auto;flex-direction:column}
+  .groupTitle{font-size:14px;font-weight:700;color:#d9dce2;margin:12px 0 8px}
+  .marker{font-size:22px;color:#f0f0f0;line-height:1;display:flex;align-items:center;justify-content:center;text-align:center}
+  .axis{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:#15161a;border:1px solid #53565e;font-size:12px;color:#fff;font-weight:700}
+.miniGrid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  grid-template-rows:repeat(4,1fr);
+  width:42px;
+  height:42px;
+  gap:2px;
+  padding:4px;
+  border-radius:9px;
+  background:#15161a;
+  border:1px solid #53565e;
+}
+.miniGrid .cell{
+  width:100%;
+  height:100%;
+  border-radius:2px;
+  background:#2f3239;
+  border:1px solid #4a4d56;
+}
+
+.clue:hover{
+  background:#4a4d56; /* hieman vaaleampi */
+}
+
+  .miniGrid .cell.hit{background:#f0bf2c;border-color:#f3d680}
+  .muted{color:var(--muted)}
+  .help{font-size:13px;color:var(--muted);margin-top:10px;line-height:1.35}
+  .clueHelp{margin-top:14px;padding:12px 14px;border-radius:14px;background:#17181c;border:1px solid #3d4048}
+  .clueHelpTitle{font-size:13px;font-weight:700;color:#ececec;margin:0 0 8px}
+  .clueHelpText{font-size:12px;line-height:1.45;color:var(--muted)}
+  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+
+  #colClues{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;align-items:flex-start}
+#rowClues{
+  display:grid;
+  grid-template-columns: repeat(4, auto);
+  gap:10px;
+}
+  .clue.row{flex-direction:row;align-items:center;min-width:auto;min-height:auto;padding:8px 10px}
+  .clue.row .icons{flex-direction:row;gap:4px}
+  .clue.col{flex-direction:column;align-items:center}
+  .clue.col .icons{flex-direction:column;gap:6px}
+  .cluePanel{overflow-x:auto}
+  #colClues,#rowClues{min-width:max-content}
+  /* Pienennä vain alhaalla olevia valittavia kortteja */
+  
+  #tray{
+  grid-template-columns:repeat(2,42px);
+  gap:8px;
+}
+#tray .card{
+  width:42px;
+  height:42px;
+}
+
+#tray .card svg{
+  width:36px;
+  height:36px;
+}
+#tray .trayPlaceholder{
+  width:42px;
+  height:42px;
+  border-radius:9px;
+  border:1px dashed #4a4d56;
+  background:rgba(255,255,255,.03);
+}
+  
+  @media (max-width: 1100px){
+    .layout{grid-template-columns:1fr}
+  }
+  
+  @media (max-width: 1280px){
+    .wrap{padding:14px}
+    .layout{gap:12px}
+    .boardPanel,.cluePanel{padding:12px}
+    .gameArea{gap:12px}
+    #colClues{gap:6px}
+    #rowClues{gap:8px}
+  }
+
+  @media (max-width: 980px){
+    .gameArea{grid-template-columns:1fr}
+  }
+  @media (max-width: 620px){
+    .board{grid-template-columns:repeat(4,70px);grid-template-rows:repeat(4,70px)}
+    .tray{grid-template-columns:repeat(4,70px)}
+    .slot,.card{width:70px;height:70px}
+    .card svg{width:64px;height:64px}
+    .mini{width:38px;height:38px}
+    .mini svg{width:32px;height:32px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Cardinal-henkinen logiikkapeli</h1>
+  <p class="sub">Oma toteutus: 16 abstraktia korttia, 4×4-ruudukko, kuva-vihjeet riveille ja sarakkeille, sekä vaikein taso joka yrittää jättää vain välttämättömät vihjeet.</p>
+
+  <div class="topbar">
+    <button class="primary" id="newBtn">Arvo uusi pulma</button>
+    <label>Vaikeus:
+      <select id="difficulty">
+        <option value="minimal">Minimi</option>
+        <option value="plus2bird" selected>Punainen lintu</option>
+      </select>
+    </label>
+    <button id="checkBtn">Tarkista</button>
+    <button id="showBtn">Näytä ratkaisu</button>
+    <button id="resetBtn">Tyhjennä ruudukko</button>
+    <span class="legend">Valitse kortti alarivistä ja klikkaa ruutua. Klikkaa ruudussa olevaa korttia palauttaaksesi sen takaisin.</span>
+  </div>
+
+  <div class="layout">
+    <div class="panel boardPanel">
+      <div class="gameArea">
+        <div>
+          <div class="sectionTitle">Pelaajan ruudukko</div>
+          <div class="boardWrap">
+            <div id="board" class="board"></div>
+            <div id="status" class="status">Valitse <span class="ok">Arvo uusi pulma</span>.</div>
+          </div>
+        </div>
+        <div>
+          <div class="sectionTitle">Kortit</div>
+          <div id="tray" class="tray"></div>
+          <div class="help" style="display:none">Vihjeet oikealla jakautuvat kahteen osaan: <span class="axis">R</span> = vaakarivit, <span class="axis">S</span> = pystysarakkeet. Tasolla “Minimi + 2 + punainen lintu” punainen lintu näkyy valmiiksi laudalla eikä sitä voi siirtää.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel cluePanel">
+      <div class="sectionTitle">Vihjeet</div>
+      <div class="clueHelp">
+        <div class="clueHelpTitle">Merkinnät</div>
+        <div class="clueHelpText" style="display:none">
+          Miniruudukossa väritetty rivi tai sarake kertoo suoran rivi-/sarakevihjeen.
+          Nuoli kertoo järjestyksen. Kaksi tyhjää ruutua ja nuoli tarkoittaa kahden ruudun väliä.
+          Vastakkaiset nuolet tarkoittavat vastakkaisia reunoja. Kaksisuuntainen nuoli tarkoittaa,
+          että keskimmäinen kortti on kahden muun välissä, mutta päätyjen järjestys ei ole tiedossa.
+        </div>
+      </div>
+      <div class="groupTitle"><span class="axis">S</span> Sarakkeet</div>
+      <div id="colClues" class="clues colClues"></div>
+      <div class="groupTitle"><span class="axis">R</span> Rivit</div>
+      <div id="rowClues" class="clues rowClues"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CARD_DEFS = [
+  {id:'sunDot', name:'Aurinkopiste', draw: svg => {
+    circle(svg,42,42,21,'#f1642a');
+  }},
+  {id:'greenSquare', name:'Vihreä neliö', draw: svg => {
+    rect(svg,22,22,40,40,'#8ad26e',0);
+  }},
+  {id:'blueTri', name:'Sininen kolmio', draw: svg => {
+    poly(svg,[[42,12],[68,64],[16,64]], '#39a7ea');
+  }},
+  {id:'yellowSquare', name:'Keltainen neliö', draw: svg => {
+    rect(svg,22,22,40,40,'#f3c035',0);
+  }},
+  {id:'pinkDiamondStripe', name:'Vinoneliö raidalla', draw: svg => {
+    poly(svg,[[42,10],[68,36],[42,62],[16,36]], '#e553a9');
+    poly(svg,[[20,58],[26,64],[64,26],[58,20]], '#f3cc3e');
+    poly(svg,[[12,50],[18,56],[56,18],[50,12]], '#f3cc3e');
+    rect(svg,10,64,64,8,'#38b4df',0);
+    rect(svg,10,54,64,6,'#8b42db',0);
+  }},
+{id:'pinkBarTeeth', name:'Piikkipalkki', draw: svg => {
+  const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.setAttribute('transform','translate(0,14)'); // oikealle 4, alas 8
+
+  rect(g,26,10,32,16,'#c637b7',4);
+  rect(g,20,30,44,14,'#f06bb4',0);
+  for(let i=0;i<5;i++) poly(g,[[18+i*10,44],[23+i*10,52],[28+i*10,44]], '#222');
+  line(g,18,10,66,10,'#e3b422',8,'round');
+  circle(g,24,10,3,'#fff');
+  circle(g,60,10,3,'#fff');
+
+  svg.appendChild(g);
+}},
+{id:'gridLime', name:'Neliö ja ympyrä', draw: svg => {
+  rect(svg,18,18,48,48,'#f06bb4',4);
+  circle(svg,42,42,13,'#f5efe5');
+  circle(svg,42,42,7,'#f0bf2c');
+}},
+  {id:'ringHex', name:'Rengas ja kuusio', draw: svg => {
+    circle(svg,42,22,16,'none','#74d83f',7);
+    circle(svg,42,22,9,'#f09b35');
+    poly(svg,[[42,44],[62,56],[62,68],[42,80],[22,68],[22,56]], 'none','#8acb46',6);
+  }},
+  {id:'emeraldV', name:'Smaragdi-V', draw: svg => {
+    poly(svg,[[18,18],[42,68],[66,18]], '#0d3e4f');
+    poly(svg,[[26,22],[42,54],[58,22]], '#f5d53f');
+    circle(svg,42,38,4,'#f5d53f');
+  }},
+  {id:'birdRed', name:'Punainen lintu', draw: svg => {
+    poly(svg,[[14,52],[46,24],[60,56]], '#e33d2e');
+    poly(svg,[[28,40],[64,48],[34,60]], '#f29b20');
+    circle(svg,28,42,3,'#111');
+    poly(svg,[[10,50],[16,46],[16,54]], '#f0c43a');
+  }},
+  {id:'powerDot', name:'Virtapiste', draw: svg => {
+    circle(svg,42,42,20,'#67d65e');
+    line(svg,42,18,42,42,'#ff5757',5,'round');
+    circle(svg,42,42,4,'#ffcf31');
+  }},
+  {id:'purpleMountain', name:'Vuori', draw: svg => {
+    poly(svg,[[16,58],[42,14],[68,58]], '#d89d45');
+    poly(svg,[[26,58],[42,30],[58,58]], '#a966d7');
+  }},
+{id:'tealSplit', name:'Split-diagonaali', draw: svg => {
+  const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.setAttribute('transform','translate(2,-12)'); // oikealle 4, ylös 6
+
+  poly(g,[[16,64],[50,30],[68,48],[34,82]], '#4de2d1');
+  poly(g,[[8,50],[42,16],[60,34],[26,68]], '#e85f5b');
+  poly(g,[[20,76],[54,42],[72,60],[38,94]], '#f0c443');
+
+  svg.appendChild(g);
+}},
+  {id:'magnet', name:'Magneetti', draw: svg => {
+    rect(svg,10,22,26,36,'#43d3d3',8);
+    rect(svg,48,22,26,36,'#4aa3e4',8);
+    rect(svg,28,34,20,12,'#fff',2);
+    circle(svg,58,40,10,'#ef4b4b'); circle(svg,58,40,4,'#f2bc31');
+  }},
+  {id:'medalBrown', name:'Mitali', draw: svg => {
+    rect(svg,30,14,24,12,'#b98a43',6);
+    circle(svg,42,40,14,'#7c5130');
+    circle(svg,42,40,5,'#f2c231');
+    circle(svg,42,60,6,'#d06fc7');
+  }},
+  {id:'halfCircle', name:'Puolikaari', draw: svg => {
+    path(svg,'M42 10 A32 32 0 1 1 42 74 L42 10 Z','#4aa4e9');
+    rect(svg,40,10,8,64,'#f2cf37',0);
+    rect(svg,24,24,16,36,'#ef6bb1',0);
+    circle(svg,42,42,8,'#f28e2e');
+  }}
+];
+
+const POSITIONS = Array.from({length:16}, (_,i)=>({idx:i,row:Math.floor(i/4),col:i%4}));
+const ALL_POS_MASK = 0xFFFF;
+let REL = null;
+let currentPuzzle = null;
+let selectedCardId = null;
+let boardState = Array(16).fill(null);
+let trayOrder = [];
+let fixedPositions = new Set();
+
+function initRelations(){
+  const adjRow = Array(16).fill(0), adjCol = Array(16).fill(0), left2 = Array(16).fill(0), right2 = Array(16).fill(0), up2 = Array(16).fill(0), down2 = Array(16).fill(0),
+        oppositeRow = Array(16).fill(0), oppositeCol = Array(16).fill(0),
+        betweenRowMid = Array(16).fill(0), betweenColMid = Array(16).fill(0);
+  const betweenRowAC = Array.from({length:16},()=>Array(16).fill(false));
+  const betweenColAC = Array.from({length:16},()=>Array(16).fill(false));
+  for(const p of POSITIONS){
+    for(const q of POSITIONS){
+      if(p.row===q.row && q.col===p.col+1) adjRow[p.idx] |= (1<<q.idx);
+      if(p.col===q.col && q.row===p.row+1) adjCol[p.idx] |= (1<<q.idx);
+      if(p.row===q.row && q.col===p.col+2) right2[p.idx] |= (1<<q.idx);
+      if(p.row===q.row && q.col===p.col-2) left2[p.idx] |= (1<<q.idx);
+      if(p.col===q.col && q.row===p.row+2) down2[p.idx] |= (1<<q.idx);
+      if(p.col===q.col && q.row===p.row-2) up2[p.idx] |= (1<<q.idx);
+      if(p.row===q.row && ((p.col===0&&q.col===3)||(p.col===3&&q.col===0))) oppositeRow[p.idx] |= (1<<q.idx);
+      if(p.col===q.col && ((p.row===0&&q.row===3)||(p.row===3&&q.row===0))) oppositeCol[p.idx] |= (1<<q.idx);
+    }
+  }
+  for(const a of POSITIONS){
+    for(const b of POSITIONS){
+      for(const c of POSITIONS){
+        const sameRow = a.row===b.row && b.row===c.row;
+        const sameCol = a.col===b.col && b.col===c.col;
+        if(sameRow){
+          const cols=[a.col,b.col,c.col].sort((x,y)=>x-y);
+          if(cols[0]+1===cols[1] && cols[1]+1===cols[2] && b.col===cols[1]){
+            betweenRowMid[b.idx] |= (1<<a.idx) | (1<<c.idx);
+            betweenRowAC[a.idx][c.idx]=true;
+          }
+        }
+        if(sameCol){
+          const rows=[a.row,b.row,c.row].sort((x,y)=>x-y);
+          if(rows[0]+1===rows[1] && rows[1]+1===rows[2] && b.row===rows[1]){
+            betweenColMid[b.idx] |= (1<<a.idx) | (1<<c.idx);
+            betweenColAC[a.idx][c.idx]=true;
+          }
+        }
+      }
+    }
+  }
+  REL = {adjRow,adjCol,left2,right2,up2,down2,oppositeRow,oppositeCol,betweenRowAC,betweenColAC};
+}
+
+function circle(svg,cx,cy,r,fill,stroke=null,sw=0){ const el = document.createElementNS('http://www.w3.org/2000/svg','circle'); el.setAttribute('cx',cx);el.setAttribute('cy',cy);el.setAttribute('r',r);el.setAttribute('fill',fill); if(stroke){el.setAttribute('stroke',stroke);el.setAttribute('stroke-width',sw);} svg.appendChild(el); return el; }
+function rect(svg,x,y,w,h,fill,rx=0,stroke=null,sw=0){ const el=document.createElementNS('http://www.w3.org/2000/svg','rect'); Object.entries({x,y,width:w,height:h,fill,rx}).forEach(([k,v])=>el.setAttribute(k,v)); if(stroke){el.setAttribute('stroke',stroke);el.setAttribute('stroke-width',sw);} svg.appendChild(el); return el; }
+function poly(svg,pts,fill,stroke=null,sw=0){ const el=document.createElementNS('http://www.w3.org/2000/svg','polygon'); el.setAttribute('points',pts.map(p=>p.join(',')).join(' ')); el.setAttribute('fill',fill); if(stroke){el.setAttribute('stroke',stroke);el.setAttribute('stroke-width',sw);} svg.appendChild(el); return el; }
+function line(svg,x1,y1,x2,y2,stroke,sw=2,cap='square'){ const el=document.createElementNS('http://www.w3.org/2000/svg','line'); Object.entries({x1,y1,x2,y2,stroke,'stroke-width':sw,'stroke-linecap':cap}).forEach(([k,v])=>el.setAttribute(k,v)); svg.appendChild(el); return el; }
+function path(svg,d,fill,stroke=null,sw=0){ const el=document.createElementNS('http://www.w3.org/2000/svg','path'); el.setAttribute('d',d); el.setAttribute('fill',fill); if(stroke){el.setAttribute('stroke',stroke);el.setAttribute('stroke-width',sw);} svg.appendChild(el); return el; }
+
+function makeCardElement(cardId, mini=false){
+  const def = CARD_DEFS.find(c=>c.id===cardId);
+  const el = document.createElement('div');
+  el.className = 'card' + (mini ? ' mini':'');
+  el.dataset.card = cardId;
+  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('viewBox','0 0 84 84');
+  def.draw(svg);
+  el.appendChild(svg);
+  el.title = def.name;
+  return el;
+}
+
+function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function bitCount(n){ let c=0; while(n){ n&=(n-1); c++; } return c; }
+function maskHas(mask,idx){ return (mask & (1<<idx))!==0; }
+function firstBit(mask){ for(let i=0;i<16;i++) if(mask&(1<<i)) return i; return -1; }
+function bits(mask){ const out=[]; for(let i=0;i<16;i++) if(mask&(1<<i)) out.push(i); return out; }
+
+function generateSolution(){ return shuffle(CARD_DEFS.map(c=>c.id)); }
+function posOf(solution, cardId){ return solution.indexOf(cardId); }
+function rowOf(solution, cardId){ return Math.floor(posOf(solution, cardId)/4); }
+function colOf(solution, cardId){ return posOf(solution, cardId)%4; }
+
+function allCandidateClues(solution){
+  const ids = CARD_DEFS.map(c=>c.id);
+  const clues=[];
+  for(const a of ids){
+    clues.push({type:'specificRow', axis:'row', a, row:rowOf(solution,a)});
+    clues.push({type:'specificCol', axis:'col', a, col:colOf(solution,a)});
+  }
+  for(const a of ids){
+    for(const b of ids){
+      if(a===b) continue;
+      const pa=posOf(solution,a), pb=posOf(solution,b);
+      const A=POSITIONS[pa], B=POSITIONS[pb];
+      if(A.row===B.row && B.col===A.col+1) clues.push({type:'adjacentOrdered', axis:'row', a,b});
+      if(A.col===B.col && B.row===A.row+1) clues.push({type:'adjacentOrdered', axis:'col', a,b});
+      if(A.row===B.row && B.col===A.col+2) clues.push({type:'distance2Ordered', axis:'row', a,b});
+      if(A.col===B.col && B.row===A.row+2) clues.push({type:'distance2Ordered', axis:'col', a,b});
+      if(A.row===B.row && A.col===0 && B.col===3) clues.push({type:'oppositeEdges', axis:'row', a,b});
+      if(A.col===B.col && A.row===0 && B.row===3) clues.push({type:'oppositeEdges', axis:'col', a,b});
+    }
+  }
+  for(const b of ids){
+    for(const a of ids){
+      if(a===b) continue;
+      for(const c of ids){
+        if(a===b || b===c || a===c) continue;
+        const A=POSITIONS[posOf(solution,a)], B=POSITIONS[posOf(solution,b)], C=POSITIONS[posOf(solution,c)];
+        if(A.row===B.row && B.row===C.row){
+          const cols=[A.col,B.col,C.col].sort((x,y)=>x-y);
+          if(cols[0]+1===cols[1] && cols[1]+1===cols[2] && B.col===cols[1] && a < c) clues.push({type:'between', axis:'row', a,b,c});
+        }
+        if(A.col===B.col && B.col===C.col){
+          const rows=[A.row,B.row,C.row].sort((x,y)=>x-y);
+          if(rows[0]+1===rows[1] && rows[1]+1===rows[2] && B.row===rows[1] && a < c) clues.push({type:'between', axis:'col', a,b,c});
+        }
+      }
+    }
+  }
+  return dedupeClues(clues);
+}
+
+function clueKey(clue){
+  return JSON.stringify(clue);
+}
+function dedupeClues(clues){
+  const seen=new Set(), out=[];
+  for(const c of clues){ const k=clueKey(c); if(!seen.has(k)){seen.add(k); out.push(c);} }
+  return out;
+}
+
+function domainsFromUnary(clues){
+  const dom={};
+  for(const c of CARD_DEFS) dom[c.id]=ALL_POS_MASK;
+  for(const clue of clues){
+    if(clue.type==='specificRow'){
+      let mask=0; for(const p of POSITIONS) if(p.row===clue.row) mask|=(1<<p.idx); dom[clue.a] &= mask;
+    }
+    if(clue.type==='specificCol'){
+      let mask=0; for(const p of POSITIONS) if(p.col===clue.col) mask|=(1<<p.idx); dom[clue.a] &= mask;
+    }
+  }
+  return dom;
+}
+
+function compatible(clue, pa, pb, pc){
+  const A=POSITIONS[pa], B=pb!=null?POSITIONS[pb]:null, C=pc!=null?POSITIONS[pc]:null;
+  switch(clue.type){
+    case 'adjacentOrdered':
+      return clue.axis==='row' ? (A.row===B.row && B.col===A.col+1) : (A.col===B.col && B.row===A.row+1);
+    case 'distance2Ordered':
+      return clue.axis==='row' ? (A.row===B.row && B.col===A.col+2) : (A.col===B.col && B.row===A.row+2);
+    case 'oppositeEdges':
+      return clue.axis==='row' ? (A.row===B.row && A.col===0 && B.col===3) : (A.col===B.col && A.row===0 && B.row===3);
+    case 'between':
+      if(clue.axis==='row'){
+        return A.row===B.row && B.row===C.row && Math.abs(A.col-B.col)===1 && Math.abs(C.col-B.col)===1 && Math.abs(A.col-C.col)===2;
+      }
+      return A.col===B.col && B.col===C.col && Math.abs(A.row-B.row)===1 && Math.abs(C.row-B.row)===1 && Math.abs(A.row-C.row)===2;
+  }
+  return true;
+}
+
+function propagate(dom, clues){
+  let changed=true;
+  while(changed){
+    changed=false;
+    for(const id of Object.keys(dom)) if(dom[id]===0) return false;
+    // all-different singles
+    for(const a of Object.keys(dom)){
+      if(bitCount(dom[a])===1){
+        const bit=dom[a];
+        for(const b of Object.keys(dom)) if(a!==b && (dom[b]&bit)){
+          const nd=dom[b] & ~bit;
+          if(nd!==dom[b]){ dom[b]=nd; changed=true; if(nd===0) return false; }
+        }
+      }
+    }
+    // binary and ternary constraints
+    for(const clue of clues){
+      if(clue.type==='adjacentOrdered' || clue.type==='distance2Ordered' || clue.type==='oppositeEdges'){
+        let da=0, db=0;
+        for(const pa of bits(dom[clue.a])){
+          let ok=false;
+          for(const pb of bits(dom[clue.b])) if(pa!==pb && compatible(clue, pa, pb)){ ok=true; db |= (1<<pb); }
+          if(ok) da |= (1<<pa);
+        }
+        if(da!==dom[clue.a]){ dom[clue.a]=da; changed=true; if(da===0) return false; }
+        if((db & dom[clue.b])!==dom[clue.b]){ dom[clue.b] &= db; changed=true; if(dom[clue.b]===0) return false; }
+      }
+      if(clue.type==='between'){
+        let da=0, db=0, dc=0;
+        const As=bits(dom[clue.a]), Bs=bits(dom[clue.b]), Cs=bits(dom[clue.c]);
+        for(const pa of As){
+          let oka=false;
+          for(const pb of Bs){
+            if(pa===pb) continue;
+            for(const pc of Cs){
+              if(pa===pc || pb===pc) continue;
+              if(compatible(clue,pa,pb,pc)) { oka=true; db|=(1<<pb); dc|=(1<<pc); }
+            }
+          }
+          if(oka) da|=(1<<pa);
+        }
+        if(da!==dom[clue.a]){ dom[clue.a]=da; changed=true; if(da===0) return false; }
+        if((db & dom[clue.b])!==dom[clue.b]){ dom[clue.b] &= db; changed=true; if(dom[clue.b]===0) return false; }
+        if((dc & dom[clue.c])!==dom[clue.c]){ dom[clue.c] &= dc; changed=true; if(dom[clue.c]===0) return false; }
+      }
+    }
+    // quick row/col capacity pruning
+    for(let pos=0; pos<16; pos++){
+      let count=0; for(const id of Object.keys(dom)) if(dom[id]&(1<<pos)) count++;
+      if(count===0) return false;
+    }
+  }
+  return true;
+}
+
+function cloneDom(dom){ const out={}; for(const k of Object.keys(dom)) out[k]=dom[k]; return out; }
+
+function countSolutions(clues, limit=2, fixedAssignments=null){
+  const dom = domainsFromUnary(clues);
+
+  if(fixedAssignments){
+    for(const [id, pos] of Object.entries(fixedAssignments)){
+      if(!(id in dom)) continue;
+      dom[id] &= (1 << pos);
+      if(dom[id] === 0) return {count:0, solution:null};
+    }
+  }
+
+  if(!propagate(dom, clues)) return {count:0, solution:null};
+  let solutions=0, first=null;
+  function rec(dom){
+    if(solutions>=limit) return;
+    let chosen=null, size=99;
+    for(const id of Object.keys(dom)){
+      const bc=bitCount(dom[id]);
+      if(bc>1 && bc<size){ size=bc; chosen=id; }
+    }
+    if(!chosen){
+      const used=new Set();
+      const solution=Array(16).fill(null);
+      for(const id of Object.keys(dom)){
+        const pos=firstBit(dom[id]);
+        if(used.has(pos)) return;
+        used.add(pos); solution[pos]=id;
+      }
+      if(solution.some(v=>!v)) return;
+      solutions++; if(!first) first=solution; return;
+    }
+    for(const pos of bits(dom[chosen])){
+      const d2=cloneDom(dom);
+      d2[chosen]=(1<<pos);
+      if(propagate(d2, clues)) rec(d2);
+      if(solutions>=limit) return;
+    }
+  }
+  rec(dom);
+  return {count:solutions, solution:first};
+}
+
+function minimizeClues(baseClues, fixedAssignments=null){
+  let minimal = [...baseClues];
+  let changed = true;
+
+  while(changed){
+    changed = false;
+
+    for(let i = minimal.length - 1; i >= 0; i--){
+      const test = minimal.slice(0, i).concat(minimal.slice(i + 1));
+
+      // 🔒 pidä vähintään 4 row ja 4 col
+      const rowCount = test.filter(c => c.axis === 'row').length;
+      const colCount = test.filter(c => c.axis === 'col').length;
+
+      if(rowCount < 4 || colCount < 4) continue;
+
+      if(countSolutions(test, 2, fixedAssignments).count === 1){
+        minimal = test;
+        changed = true;
+        break;
+      }
+    }
+  }
+
+  return minimal;
+}
+
+function buildPuzzle(difficulty){
+  const maxAttempts = 20;
+
+  for(let attempt=0; attempt<maxAttempts; attempt++){
+    const solution = generateSolution();
+    const all = allCandidateClues(solution);
+
+    const unary = shuffle(all.filter(c => c.type === 'specificRow' || c.type === 'specificCol'));
+    const relational = shuffle(all.filter(c => c.type !== 'specificRow' && c.type !== 'specificCol'));
+
+    const sampledUnary = unary.slice(0, 8);
+    const sampledRelational = relational.slice(0, 36);
+
+    const ranked = shuffle([...sampledUnary, ...sampledRelational])
+      .sort((x, y) => clueWeight(y) - clueWeight(x));
+
+    const fixedAssignments = difficulty === 'plus2bird'
+      ? { birdRed: solution.indexOf('birdRed') }
+      : null;
+
+    const chosen = [];
+    let solved = null;
+
+    for(const clue of ranked){
+      chosen.push(clue);
+      const res = countSolutions(chosen, 2, fixedAssignments);
+      if(res.count === 1){
+        solved = res;
+        break;
+      }
+    }
+
+    if(!solved) continue;
+
+    const minimal = minimizeClues(chosen, fixedAssignments);
+    let finalClues = [...minimal];
+
+    if(difficulty === 'plus2bird'){
+      const extras = ranked.filter(c => !finalClues.some(m => clueKey(m) === clueKey(c)));
+      for(const extra of extras){
+        const test = dedupeClues([...finalClues, extra]);
+        if(countSolutions(test, 2, fixedAssignments).count === 1){
+          finalClues = test;
+        }
+        if(finalClues.length >= minimal.length + 2) break;
+      }
+    }
+
+    return {
+      solution,
+      clues: finalClues,
+      minimalCount: minimal.length
+    };
+  }
+
+  return null;
+}
+
+function clueWeight(c){
+  return ({between:2, oppositeEdges:2, distance2Ordered:2, adjacentOrdered:2, specificRow:2, specificCol:2}[c.type]||1);
+}
+
+function renderBoard(){
+  const board = document.getElementById('board'); board.innerHTML='';
+  for(let i=0;i<16;i++){
+    const slot = document.createElement('div');
+    slot.className='slot'+(boardState[i]?' filled':'')+(fixedPositions.has(i)?' fixed':'');
+    slot.dataset.pos=i;
+    slot.onclick=()=>onSlotClick(i);
+    if(boardState[i]) slot.appendChild(makeCardElement(boardState[i]));
+    board.appendChild(slot);
+  }
+}
+
+function renderTray(){
+  const tray = document.getElementById('tray'); tray.innerHTML='';
+  for(const id of trayOrder){
+    const used = boardState.includes(id);
+    if(used){
+      const ph = document.createElement('div');
+      ph.className = 'trayPlaceholder';
+      tray.appendChild(ph);
+      continue;
+    }
+    const card = makeCardElement(id);
+    if(selectedCardId===id) card.classList.add('selected');
+    card.onclick=()=>{ selectedCardId = selectedCardId===id ? null : id; renderTray(); };
+    tray.appendChild(card);
+  }
+}
+
+function onSlotClick(pos){
+  if(fixedPositions.has(pos)) return;
+  if(boardState[pos]){
+    boardState[pos]=null;
+    renderBoard(); renderTray();
+    return;
+  }
+  if(!selectedCardId) return;
+  boardState[pos]=selectedCardId;
+  selectedCardId=null;
+  renderBoard(); renderTray();
+}
+
+function makeMiniGridHighlight(axis, index){
+  const grid = document.createElement('div');
+  grid.className = 'miniGrid';
+  for(let r=0;r<4;r++){
+    for(let c=0;c<4;c++){
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      if((axis==='row' && r===index) || (axis==='col' && c===index)) cell.classList.add('hit');
+      grid.appendChild(cell);
+    }
+  }
+  return grid;
+}
+
+function clueText(clue){
+  const name = id => CARD_DEFS.find(c=>c.id===id).name;
+  const axis = clue.axis==='row' ? 'rivillä' : 'sarakkeessa';
+  switch(clue.type){
+    case 'specificRow': return `${name(clue.a)} on tietyllä vaakarivillä.`;
+    case 'specificCol': return `${name(clue.a)} on tietyssä pystysarakkeessa.`;
+    case 'adjacentOrdered': return `${name(clue.a)} ja ${name(clue.b)} ovat vierekkäin oikeassa järjestyksessä ${axis}.`;
+    case 'distance2Ordered': return `${name(clue.a)} on täsmälleen kahden ruudun päässä ennen korttia ${name(clue.b)} ${axis}.`;
+    case 'oppositeEdges': return `${name(clue.a)} ja ${name(clue.b)} ovat vastakkaisilla reunoilla, järjestys tiedetään ${axis}.`;
+    case 'between': return `${name(clue.b)} on suoraan korttien ${name(clue.a)} ja ${name(clue.c)} välissä ${axis}, mutta päätyjen järjestys ei ole tiedossa.`;
+  }
+  return '';
+}
+
+function renderClue(clue){
+  const row = document.createElement('div');
+  row.className = 'clue ' + (clue.axis==='col' ? 'col':'row');
+  row.title = clueText(clue);							 
+  row.onclick = () => row.classList.toggle('dimmed');
+  const icons = document.createElement('div'); icons.className='icons';
+  if(clue.type==='specificRow' || clue.type==='specificCol'){
+    icons.appendChild(makeCardElement(clue.a, true));
+    icons.appendChild(makeMiniGridHighlight(clue.axis, clue.axis==='row' ? clue.row : clue.col));
+  } else if(clue.type==='adjacentOrdered'){
+    icons.appendChild(makeCardElement(clue.a, true));
+    const sym = document.createElement('div'); sym.className='marker'; sym.textContent = clue.axis==='row' ? '⇢' : '⇣';
+    icons.appendChild(sym);
+    icons.appendChild(makeCardElement(clue.b, true));
+  } else if(clue.type==='distance2Ordered'){
+    icons.appendChild(makeCardElement(clue.a, true));
+    const mid = document.createElement('div'); mid.className='marker'; mid.textContent = clue.axis==='row' ? '□ ⇢' : '□\n⇣'; mid.style.whiteSpace='pre'; mid.style.fontSize='18px';
+    icons.appendChild(mid);
+    icons.appendChild(makeCardElement(clue.b, true));
+  } else if(clue.type==='oppositeEdges'){
+    icons.appendChild(makeCardElement(clue.a, true));
+    const sym = document.createElement('div'); sym.className='marker'; sym.textContent = clue.axis==='row' ? '⇠  ⇢' : '⇡\n⇣'; sym.style.whiteSpace='pre'; sym.style.fontSize='18px';
+    icons.appendChild(sym);
+    icons.appendChild(makeCardElement(clue.b, true));
+  } else if(clue.type==='between'){
+    icons.appendChild(makeCardElement(clue.a, true));
+    const s1=document.createElement('div'); s1.className='marker'; s1.textContent = clue.axis==='row' ? '⇄' : '⇅'; icons.appendChild(s1);
+    icons.appendChild(makeCardElement(clue.b, true));
+    const s2=document.createElement('div'); s2.className='marker'; s2.textContent = clue.axis==='row' ? '⇄' : '⇅'; icons.appendChild(s2);
+    icons.appendChild(makeCardElement(clue.c, true));
+  }
+  row.appendChild(icons);
+  return row;
+}
+
+function renderClues(clues){
+  const rowClues = document.getElementById('rowClues');
+  const colClues = document.getElementById('colClues');
+  rowClues.innerHTML=''; colClues.innerHTML='';
+  const rows = clues.filter(c=>c.axis==='row');
+  const cols = clues.filter(c=>c.axis==='col');
+  rows.forEach(c=>rowClues.appendChild(renderClue(c)));
+  cols.forEach(c=>colClues.appendChild(renderClue(c)));
+}
+
+function setStatus(html){ document.getElementById('status').innerHTML = html; }
+
+function newPuzzle(){
+  const difficulty = document.getElementById('difficulty').value;
+  setStatus('Rakennetaan pulmaa…');
+
+  setTimeout(() => {
+    currentPuzzle = buildPuzzle(difficulty);
+
+    if(!currentPuzzle){
+      setStatus('<span class="err">Pulman generointi epäonnistui. Kokeile uudelleen.</span>');
+      return;
+    }
+
+    boardState = Array(16).fill(null);
+    trayOrder = shuffle(CARD_DEFS.map(c => c.id));
+    selectedCardId = null;
+    fixedPositions = new Set();
+
+    if(difficulty === 'plus2bird'){
+      const birdPos = currentPuzzle.solution.indexOf('birdRed');
+      if(birdPos >= 0){
+        boardState[birdPos] = 'birdRed';
+        fixedPositions.add(birdPos);
+      }
+    }
+
+    renderBoard();
+    renderTray();
+    renderClues(currentPuzzle.clues);
+
+    const difficultyLabel = difficulty === 'minimal'
+      ? 'Minimi'
+      : 'Punainen lintu';
+
+    setStatus(`Uusi pulma valmis. Taso: <span class="ok">${difficultyLabel}</span> · 
+Vihjeitä: <span class="ok">${currentPuzzle.clues.length}</span>`);
+  }, 10);
+}
+
+function checkBoard(){
+  if(boardState.some(v=>!v)){ setStatus('<span class="err">Ruudukko ei ole vielä täynnä.</span>'); return; }
+  const ok = boardState.every((id,i)=>id===currentPuzzle.solution[i]);
+  if(ok) setStatus('<span class="ok">Oikein! Ratkaisu on täsmälleen oikein.</span>');
+  else setStatus('<span class="err">Ei vielä oikein.</span>');
+}
+
+function showSolution(){
+  if(!currentPuzzle) return;
+  boardState = [...currentPuzzle.solution];
+  selectedCardId=null;
+  renderBoard(); renderTray();
+  setStatus('<span class="ok">Ratkaisu näytetty.</span>');
+}
+
+function resetBoard(){
+  boardState = Array(16).fill(null);
+  selectedCardId = null;
+
+  if(currentPuzzle && document.getElementById('difficulty').value === 'plus2bird'){
+    const birdPos = currentPuzzle.solution.indexOf('birdRed');
+    if(birdPos >= 0){
+      boardState[birdPos] = 'birdRed';
+      fixedPositions = new Set([birdPos]);
+    } else {
+      fixedPositions = new Set();
+    }
+  } else {
+    fixedPositions = new Set();
+  }
+
+  renderBoard();
+  renderTray();
+  setStatus('Ruudukko tyhjennetty.');
+}
+
+function init(){
+  initRelations();
+  renderBoard(); renderTray();
+  document.getElementById('newBtn').onclick = newPuzzle;
+  document.getElementById('difficulty').onchange = newPuzzle;
+  document.getElementById('checkBtn').onclick = checkBoard;
+  document.getElementById('showBtn').onclick = showSolution;
+  document.getElementById('resetBtn').onclick = resetBoard;
+  newPuzzle();
+}
+init();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js");
+  });
+}
+</script>
+</body>
+</html>
