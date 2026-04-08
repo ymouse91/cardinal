@@ -1,6 +1,6 @@
 {
   "name": "Cardinal",
-  "short_name": "Temple Trap",
+  "short_name": "Cardinal",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
