@@ -2,8 +2,10 @@
 <html lang="fi">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1",viewport-fit=cover" />
   <link rel="manifest" href="manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="icon" href="icon192.png">
   <link rel="apple-touch-icon" href="icon192.png">
 <title>Cardinal-henkinen logiikkapeli</title>
@@ -272,9 +274,9 @@ const CARD_DEFS = [
     circle(svg,42,38,4,'#f5d53f');
   }},
 {id:'birdRed', name:'Punainen lintu', draw: svg => {
-  poly(svg,[[18,56],[44,22],[62,40],[52,64],[28,64]], '#e33d2e');
-  poly(svg,[[34,42],[50,36],[48,52]], '#111');
-  circle(svg,44,43,3.5,'#f0c43a');
+  poly(svg,[[18,56],[44,22],[72,40],[52,64],[26,64]], '#e33d2e');
+  poly(svg,[[26,44],[50,36],[48,52]], '#111');
+  circle(svg,38,44,3.5,'#f0c43a');
   poly(svg,[[6,54],[26,44],[26,64]], '#f29b20');
 }},
   {id:'powerDot', name:'Virtapiste', draw: svg => {
