@@ -22,159 +22,174 @@
     --shadow:0 8px 24px rgba(0,0,0,.28);
     --good:#58d37b;
     --bad:#ef5d5d;
+    --boardCell:94px;
+    --boardGap:6px;
+    --boardPad:10px;
+    --boardSize:calc(4 * var(--boardCell) + 3 * var(--boardGap) + 2 * var(--boardPad));
   }
   *{box-sizing:border-box}
+  html,body{height:100%}
   body{
     margin:0;
     font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     background: linear-gradient(180deg,#1b1c20,#131417 30%,#101114);
     color:var(--ink);
+    overflow:hidden;
   }
-  .wrap{max-width:1440px;margin:0 auto;padding:20px}
-  h1{margin:0 0 6px;font-size:28px}
-  .sub{color:var(--muted);margin:0 0 18px}
-  .topbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+  .wrap{
+    width:min(1440px,100%);
+    margin:0 auto;
+    min-height:100svh;
+    padding:calc(6px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left));
+    display:grid;
+    grid-template-rows:auto 1fr;
+    gap:8px;
+    overflow:hidden;
+  }
+  h1,.sub,.legend,.sectionTitle,.help,.clueHelp,.clueHelpTitle,.clueHelpText{display:none}
+  .topbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end;min-height:0}
+  button,select,label{
+    font:inherit;
+  }
   button,select{
     background:#2b2d33;color:var(--ink);border:1px solid #4a4d56;border-radius:12px;
-    padding:10px 14px;font-size:15px;cursor:pointer;
+    padding:8px 12px;font-size:14px;cursor:pointer;min-height:40px;
   }
+  label{display:flex;align-items:center;gap:6px;color:transparent;font-size:0}
+  label select{color:var(--ink);font-size:14px}
   button:hover,select:hover{filter:brightness(1.08)}
   .primary{background:#3d3520;border-color:#a67e14}
-  .layout{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:18px;align-items:start}
-  .panel{background:var(--panel);border:1px solid #34363e;border-radius:20px;box-shadow:var(--shadow)}
-  .boardPanel{padding:16px;width:max-content}
-  .cluePanel{padding:16px;min-width:0}
-  .sectionTitle{font-size:18px;font-weight:700;margin:0 0 12px}
-  .gameArea{display:flex;gap:16px;align-items:flex-start;justify-content:flex-start;width:max-content}
-  .boardWrap{display:grid;gap:10px;justify-content:start;width:max-content}
+
+  .layout{
+    display:grid;
+    grid-template-columns:max-content minmax(0,1fr);
+    gap:14px;
+    align-items:start;
+    min-height:0;
+    overflow:hidden;
+  }
+  .panel{background:none;border:none;box-shadow:none}
+  .boardPanel,.cluePanel{padding:0;min-height:0}
+  .boardPanel{width:var(--boardSize)}
+  .gameArea{display:flex;flex-direction:column;gap:8px;align-items:flex-start;width:var(--boardSize)}
+  .boardWrap{display:grid;gap:8px;width:var(--boardSize)}
   .board{
-    display:grid;grid-template-columns:repeat(4,92px);grid-template-rows:repeat(4,92px);gap:8px;
-    background:#111216;padding:12px;border-radius:18px;border:2px solid #e8e2d8;
-  
-  width: calc(4 * 92px + 3 * 8px + 24px);
-  height: calc(4 * 92px + 3 * 8px + 24px);
-}
-  .slot{width:92px;height:92px;border-radius:14px;background:#0b0c0f;border:1px dashed #575b67;display:flex;align-items:center;justify-content:center}
+    display:grid;grid-template-columns:repeat(4,var(--boardCell));grid-template-rows:repeat(4,var(--boardCell));gap:var(--boardGap);
+    background:#111216;padding:var(--boardPad);border-radius:16px;border:2px solid #e8e2d8;
+    width:var(--boardSize);
+    height:var(--boardSize);
+  }
+  .slot{width:var(--boardCell);height:var(--boardCell);border-radius:13px;background:#0b0c0f;border:1px dashed #575b67;display:flex;align-items:center;justify-content:center}
   .slot.filled{border-style:solid;background:#111215}
   .slot.fixed{border-color:#f0bf2c; box-shadow: inset 0 0 0 2px rgba(240,191,44,.35)}
-  .tray{display:grid;grid-template-columns:repeat(4,92px);gap:8px;justify-content:start;background:#111216;padding:12px;border-radius:18px;border:1px solid #34363e;width:max-content}
-  .card{width:92px;height:92px;border-radius:12px;background:var(--card);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.2);border:1px solid rgba(0,0,0,.08);cursor:pointer;position:relative}
-  .card svg{width:84px;height:84px;overflow:visible}
-  .card.selected{outline:4px solid var(--accent);outline-offset:2px}
-  .mini{width:42px;height:42px;border-radius:9px}
-  .mini svg{width:36px;height:36px}
-  .legend{font-size:13px;color:var(--muted)}
-  .status{padding:12px 14px;border-radius:14px;background:var(--panel2);min-height:50px}
+  .card{width:var(--boardCell);height:var(--boardCell);border-radius:12px;background:var(--card);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.2);border:1px solid rgba(0,0,0,.08);cursor:pointer;position:relative}
+  .card svg{width:calc(var(--boardCell) - 10px);height:calc(var(--boardCell) - 10px);overflow:visible}
+  .card.selected{outline:none;box-shadow:0 0 0 2px var(--accent)}
+
+  .status{
+    padding:8px 10px;border-radius:12px;background:#2b2d33;min-height:40px;font-size:13px;line-height:1.25;
+    max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
   .ok{color:var(--good);font-weight:700}
   .err{color:var(--bad);font-weight:700}
-  .clues{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start}
-  .clue{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;padding:10px 8px;border-radius:14px;background:var(--panel2);border:1px solid #3d4048;min-width:68px;min-height:84px;cursor:pointer;user-select:none;transition:opacity .15s ease, filter .15s ease}
+
+  .tray{
+    display:grid;grid-template-columns:repeat(6,1fr);grid-auto-rows:auto;gap:6px;
+    background:#2f3138;padding:8px;border-radius:14px;border:1px solid #474a53;
+    width:var(--boardSize);
+    max-width:var(--boardSize);
+    min-width:var(--boardSize);
+    align-content:start;
+  }
+  #tray .card,#tray .trayPlaceholder{
+    width:100%;aspect-ratio:1 / 1;height:auto;justify-self:stretch;border-radius:9px;min-width:0;
+  }
+  #tray .card svg{width:86%;height:86%}
+  #tray .trayPlaceholder{border:1px dashed #4a4d56;background:rgba(255,255,255,.03)}
+
+  .cluePanel{display:flex;flex-direction:column;gap:12px;overflow:hidden;padding-top:2px}
+  .clueGroups{display:grid;grid-template-columns:1fr;gap:18px;min-height:0;align-content:start}
+  .clueGroup{min-width:0}
+  .groupTitle{
+    font-size:13px;font-weight:800;color:#e3d9b4;margin:0 0 10px;letter-spacing:.05em;text-transform:uppercase;
+    display:flex;align-items:center;gap:7px;
+  }
+  .axis{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:999px;background:#15161a;border:1px solid #8e7640;font-size:11px;color:#fff;font-weight:700}
+  .clues{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}
+  #colClues{display:flex;flex-wrap:wrap;gap:12px;overflow:visible;align-items:flex-start}
+  #rowClues{display:grid;grid-template-columns:repeat(3,max-content);gap:14px}
+
+  .clue{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:9px;padding:11px;border-radius:13px;background:#3a3c44;border:1px solid #4b4e57;min-width:84px;min-height:102px;cursor:pointer;user-select:none;transition:opacity .15s ease, filter .15s ease, box-shadow .15s ease, border-color .15s ease}
   .clue.dimmed{opacity:.3;filter:saturate(.35)}
-  .clue .icons{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;min-width:auto;flex:0 0 auto}
-  .clue.row .icons,.clue.col .icons{min-width:auto;flex-direction:column}
-  .groupTitle{font-size:14px;font-weight:700;color:#d9dce2;margin:12px 0 8px}
-  .marker{font-size:22px;color:#f0f0f0;line-height:1;display:flex;align-items:center;justify-content:center;text-align:center}
-  .axis{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:#15161a;border:1px solid #53565e;font-size:12px;color:#fff;font-weight:700}
-.miniGrid{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  grid-template-rows:repeat(4,1fr);
-  width:42px;
-  height:42px;
-  gap:2px;
-  padding:4px;
-  border-radius:9px;
-  background:#15161a;
-  border:1px solid #53565e;
-}
-.miniGrid .cell{
-  width:100%;
-  height:100%;
-  border-radius:2px;
-  background:#2f3239;
-  border:1px solid #4a4d56;
-}
-
-.clue:hover{
-  background:#4a4d56; /* hieman vaaleampi */
-}
-
-  .miniGrid .cell.hit{background:#f0bf2c;border-color:#f3d680}
-  .muted{color:var(--muted)}
-  .help{font-size:13px;color:var(--muted);margin-top:10px;line-height:1.35}
-  .clueHelp{margin-top:14px;padding:12px 14px;border-radius:14px;background:#17181c;border:1px solid #3d4048}
-  .clueHelpTitle{font-size:13px;font-weight:700;color:#ececec;margin:0 0 8px}
-  .clueHelpText{font-size:12px;line-height:1.45;color:var(--muted)}
-  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
-
-  #colClues{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;align-items:flex-start}
-#rowClues{
-  display:grid;
-  grid-template-columns: repeat(4, auto);
-  gap:10px;
-}
-  .clue.row{flex-direction:row;align-items:center;min-width:auto;min-height:auto;padding:8px 10px}
-  .clue.row .icons{flex-direction:row;gap:4px}
+  .clue.related{border-color:var(--accent);outline:none;box-shadow:0 0 0 2px var(--accent)}
+  .clue .icons{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:7px;min-width:auto;flex:0 0 auto}
+  .clue.row{flex-direction:row;align-items:center;min-width:auto;min-height:auto;padding:12px 14px}
+  .clue.row .icons{flex-direction:row;gap:6px}
   .clue.col{flex-direction:column;align-items:center}
   .clue.col .icons{flex-direction:column;gap:6px}
-  .cluePanel{overflow-x:auto}
-  #colClues,#rowClues{min-width:max-content}
-  /* Pienennä vain alhaalla olevia valittavia kortteja */
-  
-  #tray{
-  grid-template-columns:repeat(2,42px);
-  gap:8px;
-}
-#tray .card{
-  width:42px;
-  height:42px;
-}
+  .clue:hover{background:#454851}
+  .mini{width:58px;height:58px;border-radius:11px}
+  .mini svg{width:50px;height:50px}
+  .marker{font-size:27px;color:#f0f0f0;line-height:1;display:flex;align-items:center;justify-content:center;text-align:center}
+  .miniGrid{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);width:50px;height:50px;gap:2px;padding:4px;border-radius:9px;background:#15161a;border:1px solid #53565e}
+  .miniGrid .cell{width:100%;height:100%;border-radius:2px;background:#2f3239;border:1px solid #4a4d56}
+  .miniGrid .cell.hit{background:#f0bf2c;border-color:#f3d680}
+  .muted{color:var(--muted)}
+  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
 
-#tray .card svg{
-  width:36px;
-  height:36px;
-}
-#tray .trayPlaceholder{
-  width:42px;
-  height:42px;
-  border-radius:9px;
-  border:1px dashed #4a4d56;
-  background:rgba(255,255,255,.03);
-}
-  
-  @media (max-width: 1100px){
-    .layout{grid-template-columns:1fr}
-  }
-  
   @media (max-width: 1280px){
-    .wrap{padding:14px}
+    :root{--boardCell:88px;--boardGap:6px;--boardPad:10px;}
+    .wrap{padding:calc(6px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left));gap:6px}
     .layout{gap:12px}
-    .boardPanel,.cluePanel{padding:12px}
-    .gameArea{gap:12px}
-    #colClues{gap:6px}
-    #rowClues{gap:8px}
+    .mini{width:50px;height:50px}
+    .mini svg{width:42px;height:42px}
+    .miniGrid{width:46px;height:46px}
   }
 
-  @media (max-width: 980px){
-    .gameArea{grid-template-columns:1fr}
+  @media (max-width: 1150px){
+    :root{--boardCell:80px;--boardGap:6px;--boardPad:9px;}
+    button,select{padding:7px 10px;font-size:13px;min-height:36px}
+    .layout{gap:10px}
+    .status{font-size:12px;min-height:36px}
+    .mini{width:44px;height:44px}
+    .mini svg{width:36px;height:36px}
+    .miniGrid{width:40px;height:40px;padding:3px}
+    .clue{padding:8px;min-width:68px;min-height:82px}
+    .clue.row{padding:8px 10px}
+    .marker{font-size:20px}
   }
+
+  @media (max-width: 960px){
+    body{overflow:auto}
+    .wrap{overflow:visible;min-height:auto}
+    .layout{grid-template-columns:1fr}
+    .boardPanel,.gameArea,.boardWrap{width:100%}
+    .board{margin:0 auto}
+    .tray{grid-template-columns:repeat(4,1fr);width:var(--boardSize);max-width:var(--boardSize);min-width:0;margin:0 auto}
+    .topbar{justify-content:flex-start}
+    #rowClues{grid-template-columns:repeat(auto-fit,max-content)}
+  }
+
   @media (max-width: 620px){
-    .board{grid-template-columns:repeat(4,70px);grid-template-rows:repeat(4,70px)}
-    .tray{grid-template-columns:repeat(4,70px)}
-    .slot,.card{width:70px;height:70px}
-    .card svg{width:64px;height:64px}
-    .mini{width:38px;height:38px}
-    .mini svg{width:32px;height:32px}
+    .board{grid-template-columns:repeat(4,66px);grid-template-rows:repeat(4,66px);gap:5px;width: calc(4 * 66px + 3 * 5px + 18px);height: calc(4 * 66px + 3 * 5px + 18px);padding:9px}
+    .slot,.card{width:66px;height:66px}
+    .card svg{width:58px;height:58px}
+    .mini{width:34px;height:34px}
+    .mini svg{width:28px;height:28px}
+  }
+
+  @media (hover:none) and (pointer:coarse) and (orientation:landscape){
+    body{overflow:hidden}
+    .wrap{overflow:hidden}
   }
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>Cardinal-henkinen logiikkapeli</h1>
-  <p class="sub">Oma toteutus: 16 abstraktia korttia, 4×4-ruudukko, kuva-vihjeet riveille ja sarakkeille, sekä vaikein taso joka yrittää jättää vain välttämättömät vihjeet.</p>
 
   <div class="topbar">
-    <button class="primary" id="newBtn">Arvo uusi pulma</button>
+    <button class="primary" id="newBtn">Uusi</button>
     <label>Vaikeus:
       <select id="difficulty">
         <option value="minimal">Minimi</option>
@@ -182,44 +197,33 @@
       </select>
     </label>
     <button id="checkBtn">Tarkista</button>
-    <button id="showBtn">Näytä ratkaisu</button>
-    <button id="resetBtn">Tyhjennä ruudukko</button>
-    <span class="legend">Valitse kortti alarivistä ja klikkaa ruutua. Klikkaa ruudussa olevaa korttia palauttaaksesi sen takaisin.</span>
+    <button id="showBtn">Ratkaisu</button>
+    <button id="resetBtn">Tyhjää</button>
+    
   </div>
 
   <div class="layout">
     <div class="panel boardPanel">
       <div class="gameArea">
-        <div>
-          <div class="sectionTitle">Pelaajan ruudukko</div>
-          <div class="boardWrap">
-            <div id="board" class="board"></div>
-            <div id="status" class="status">Valitse <span class="ok">Arvo uusi pulma</span>.</div>
-          </div>
+        <div class="boardWrap">
+          <div id="board" class="board"></div>
+          <div id="status" class="status">Valitse <span class="ok">Uusi</span>.</div>
         </div>
-        <div>
-          <div class="sectionTitle">Kortit</div>
-          <div id="tray" class="tray"></div>
-          <div class="help" style="display:none">Vihjeet oikealla jakautuvat kahteen osaan: <span class="axis">R</span> = vaakarivit, <span class="axis">S</span> = pystysarakkeet. Tasolla “Minimi + 2 + punainen lintu” punainen lintu näkyy valmiiksi laudalla eikä sitä voi siirtää.</div>
-        </div>
+        <div id="tray" class="tray"></div>
       </div>
     </div>
 
     <div class="panel cluePanel">
-      <div class="sectionTitle">Vihjeet</div>
-      <div class="clueHelp">
-        <div class="clueHelpTitle">Merkinnät</div>
-        <div class="clueHelpText" style="display:none">
-          Miniruudukossa väritetty rivi tai sarake kertoo suoran rivi-/sarakevihjeen.
-          Nuoli kertoo järjestyksen. Kaksi tyhjää ruutua ja nuoli tarkoittaa kahden ruudun väliä.
-          Vastakkaiset nuolet tarkoittavat vastakkaisia reunoja. Kaksisuuntainen nuoli tarkoittaa,
-          että keskimmäinen kortti on kahden muun välissä, mutta päätyjen järjestys ei ole tiedossa.
+            <div class="clueGroups">
+        <div class="clueGroup">
+          <div class="groupTitle"><span class="axis">S</span> Sarakkeet</div>
+          <div id="colClues" class="clues colClues"></div>
+        </div>
+        <div class="clueGroup">
+          <div class="groupTitle"><span class="axis">R</span> Rivit</div>
+          <div id="rowClues" class="clues rowClues"></div>
         </div>
       </div>
-      <div class="groupTitle"><span class="axis">S</span> Sarakkeet</div>
-      <div id="colClues" class="clues colClues"></div>
-      <div class="groupTitle"><span class="axis">R</span> Rivit</div>
-      <div id="rowClues" class="clues rowClues"></div>
     </div>
   </div>
 </div>
@@ -681,21 +685,47 @@ function renderBoard(){
   }
 }
 
+function updateRelatedClueHighlights(){
+  document.querySelectorAll('.clue').forEach(clueEl => {
+    const cardIds = (clueEl.dataset.cards || '').split(',').filter(Boolean);
+    clueEl.classList.toggle('related', !!selectedCardId && cardIds.includes(selectedCardId));
+  });
+}
+
 function renderTray(){
   const tray = document.getElementById('tray'); tray.innerHTML='';
+  const items = [];
   for(const id of trayOrder){
     const used = boardState.includes(id);
     if(used){
       const ph = document.createElement('div');
       ph.className = 'trayPlaceholder';
-      tray.appendChild(ph);
+      items.push(ph);
       continue;
     }
     const card = makeCardElement(id);
     if(selectedCardId===id) card.classList.add('selected');
-    card.onclick=()=>{ selectedCardId = selectedCardId===id ? null : id; renderTray(); };
-    tray.appendChild(card);
+    card.onclick=()=>{
+      selectedCardId = selectedCardId===id ? null : id;
+      renderTray();
+      updateRelatedClueHighlights();
+    };
+    items.push(card);
   }
+
+  items.forEach((el, idx) => {
+    if(idx < 5){
+      el.style.gridRow = '1';
+      el.style.gridColumn = String(idx + 1);
+    } else if(idx < 10){
+      el.style.gridRow = '2';
+      el.style.gridColumn = String(idx - 4);
+    } else {
+      el.style.gridRow = '3';
+      el.style.gridColumn = String(idx - 9);
+    }
+    tray.appendChild(el);
+  });
 }
 
 function onSlotClick(pos){
@@ -703,12 +733,14 @@ function onSlotClick(pos){
   if(boardState[pos]){
     boardState[pos]=null;
     renderBoard(); renderTray();
+    updateRelatedClueHighlights();
     return;
   }
   if(!selectedCardId) return;
   boardState[pos]=selectedCardId;
   selectedCardId=null;
   renderBoard(); renderTray();
+  updateRelatedClueHighlights();
 }
 
 function makeMiniGridHighlight(axis, index){
@@ -739,10 +771,19 @@ function clueText(clue){
   return '';
 }
 
+function clueCardIds(clue){
+  const ids = [];
+  if(clue.a) ids.push(clue.a);
+  if(clue.b) ids.push(clue.b);
+  if(clue.c) ids.push(clue.c);
+  return ids;
+}
+
 function renderClue(clue){
   const row = document.createElement('div');
   row.className = 'clue ' + (clue.axis==='col' ? 'col':'row');
-  row.title = clueText(clue);							 
+  row.title = clueText(clue);
+  row.dataset.cards = clueCardIds(clue).join(',');
   row.onclick = () => row.classList.toggle('dimmed');
   const icons = document.createElement('div'); icons.className='icons';
   if(clue.type==='specificRow' || clue.type==='specificCol'){
@@ -782,6 +823,7 @@ function renderClues(clues){
   const cols = clues.filter(c=>c.axis==='col');
   rows.forEach(c=>rowClues.appendChild(renderClue(c)));
   cols.forEach(c=>colClues.appendChild(renderClue(c)));
+  updateRelatedClueHighlights();
 }
 
 function setStatus(html){ document.getElementById('status').innerHTML = html; }
@@ -836,6 +878,7 @@ function showSolution(){
   boardState = [...currentPuzzle.solution];
   selectedCardId=null;
   renderBoard(); renderTray();
+  updateRelatedClueHighlights();
   setStatus('<span class="ok">Ratkaisu näytetty.</span>');
 }
 
@@ -857,6 +900,7 @@ function resetBoard(){
 
   renderBoard();
   renderTray();
+  updateRelatedClueHighlights();
   setStatus('Ruudukko tyhjennetty.');
 }
 
