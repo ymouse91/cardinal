@@ -354,10 +354,11 @@
     .miniGrid{width:26px;height:26px;padding:2px;gap:1px}
     .marker{font-size:14px}
 
-    /* Asetettavat palat huomattavasti pienemmät — pakota leveys */
+    /* Asetettavat palat: leveys = jäljelle jäävä tila */
     .tray{
-      flex:0 0 80px;
-      width:80px;
+      flex:1 1 0;
+      min-width:0;
+      max-width:calc(100vw - var(--boardSize) - 6px - 24px);
       grid-template-columns:repeat(2,1fr);
       gap:3px;
       padding:4px;
