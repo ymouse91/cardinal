@@ -238,22 +238,24 @@
       gap:6px;
     }
 
-    /* Board + tray rinnakkain */
-    .boardPanel{width:100%}
+    /* Board + tray rinnakkain — ylikirjoita globaali width:var(--boardSize) */
+    .boardPanel{width:100% !important;max-width:none !important}
     .gameArea{
-      display:flex;
-      flex-direction:row;
+      display:flex !important;
+      flex-direction:row !important;
       gap:6px;
       align-items:flex-start;
-      width:100%;
-      overflow:hidden;
+      width:100% !important;
+      max-width:none !important;
+      overflow:visible;
     }
     .boardWrap{
       display:flex;
       flex-direction:column;
       gap:5px;
-      flex:0 0 auto;
-      width:var(--boardSize);
+      flex:0 0 auto !important;
+      width:var(--boardSize) !important;
+      max-width:var(--boardSize) !important;
     }
     .board{
       grid-template-columns:repeat(4,var(--boardCell));
@@ -354,7 +356,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>Cardinal-logiikkapeli</h1>
+  <h1>Cardinal-henkinen logiikkapeli</h1>
 
   <div class="topbar">
     <button class="primary" id="newBtn">Uusi</button>
