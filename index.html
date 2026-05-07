@@ -182,6 +182,194 @@
     body{overflow:hidden}
     .wrap{overflow:hidden}
   }
+
+  /* ── iPhone pystynäyttö ── */
+  @media (max-width: 430px) and (orientation:portrait){
+    :root{
+      --boardCell:54px;
+      --boardGap:4px;
+      --boardPad:6px;
+    }
+    body{overflow:auto}
+    .wrap{
+      overflow:visible;
+      padding:calc(4px + env(safe-area-inset-top)) 6px calc(4px + env(safe-area-inset-bottom)) 6px;
+      grid-template-rows:auto auto 1fr;
+      gap:5px;
+    }
+
+    /* Otsikko näkyviin */
+    h1{
+      display:block;
+      font-size:14px;
+      font-weight:700;
+      color:var(--accent);
+      margin:0;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    /* Napit yhdelle riville, pienet */
+    .topbar{
+      justify-content:flex-start;
+      flex-wrap:nowrap;
+      gap:4px;
+      overflow:hidden;
+    }
+    button,select{
+      padding:5px 8px;
+      font-size:11px;
+      min-height:30px;
+      border-radius:8px;
+    }
+    label{font-size:0}
+    label select{font-size:11px}
+
+    /* Pääasettelu: ruudukko + tray rinnakkain ylhäällä */
+    .layout{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    /* Ylin rivi: board + tray rinnakkain */
+    .boardPanel{
+      width:100%;
+    }
+    .gameArea{
+      display:flex;
+      flex-direction:row;
+      gap:6px;
+      align-items:flex-start;
+      width:100%;
+    }
+    .boardWrap{
+      display:flex;
+      flex-direction:column;
+      gap:5px;
+      flex:0 0 auto;
+      width:var(--boardSize);
+    }
+    .board{
+      grid-template-columns:repeat(4,var(--boardCell));
+      grid-template-rows:repeat(4,var(--boardCell));
+      gap:var(--boardGap);
+      padding:var(--boardPad);
+      border-radius:10px;
+      width:var(--boardSize);
+      height:var(--boardSize);
+      margin:0;
+    }
+    .slot,.card{width:var(--boardCell);height:var(--boardCell)}
+    .card svg{width:calc(var(--boardCell) - 6px);height:calc(var(--boardCell) - 6px)}
+
+    /* Status pienemmäksi */
+    .status{
+      font-size:11px;
+      min-height:28px;
+      padding:5px 8px;
+      border-radius:8px;
+      white-space:normal;
+    }
+
+    /* Tray: 2 korttia per rivi (pystysuuntainen), täyttää jäljelle jäävän tilan */
+    .tray{
+      flex:1 1 0;
+      min-width:0;
+      width:auto;
+      max-width:none;
+      grid-template-columns:repeat(2,1fr);
+      gap:4px;
+      padding:6px;
+      border-radius:10px;
+      align-self:flex-start;
+    }
+    #tray .card,#tray .trayPlaceholder{
+      border-radius:7px;
+    }
+
+    /* Vihjealue: sarake- ja rivivihjeet peräkkäin */
+    .cluePanel{
+      width:100%;
+      overflow:visible;
+      padding-top:0;
+    }
+    .clueGroups{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .groupTitle{
+      font-size:11px;
+      margin:0 0 5px;
+    }
+
+    /* Sarakevihjeet: yksi vaakarivi, scroll jos ei mahdu */
+    #colClues{
+      display:flex;
+      flex-direction:row;
+      flex-wrap:nowrap;
+      overflow-x:auto;
+      gap:5px;
+      padding-bottom:2px;
+      -webkit-overflow-scrolling:touch;
+    }
+    .clue.col{
+      flex:0 0 auto;
+      min-width:54px;
+      min-height:auto;
+      padding:6px 5px;
+      border-radius:9px;
+      gap:5px;
+    }
+    .clue.col .icons{gap:4px}
+
+    /* Rivivihjeet: kolme per rivi, max 3 riviä */
+    #rowClues{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:5px;
+    }
+    .clue.row{
+      flex-direction:row;
+      min-width:0;
+      min-height:auto;
+      padding:6px 7px;
+      border-radius:9px;
+      gap:4px;
+      align-items:center;
+    }
+    .clue.row .icons{
+      flex-direction:row;
+      gap:3px;
+      flex-wrap:nowrap;
+    }
+
+    /* Mini-kortit pienemmät */
+    .mini{width:30px;height:30px}
+    .mini svg{width:24px;height:24px}
+    .miniGrid{width:26px;height:26px;padding:2px;gap:1px}
+    .marker{font-size:14px}
+
+    /* Asetettavat palat huomattavasti pienemmät — pakota leveys */
+    .tray{
+      flex:0 0 80px;
+      width:80px;
+      grid-template-columns:repeat(2,1fr);
+      gap:3px;
+      padding:4px;
+    }
+    #tray .card,#tray .trayPlaceholder{
+      width:100%;
+      aspect-ratio:1/1;
+      height:auto;
+      border-radius:5px;
+    }
+    #tray .card svg{width:75%;height:75%}
+  }
 </style>
 </head>
 <body>
@@ -714,16 +902,8 @@ function renderTray(){
   }
 
   items.forEach((el, idx) => {
-    if(idx < 5){
-      el.style.gridRow = '1';
-      el.style.gridColumn = String(idx + 1);
-    } else if(idx < 10){
-      el.style.gridRow = '2';
-      el.style.gridColumn = String(idx - 4);
-    } else {
-      el.style.gridRow = '3';
-      el.style.gridColumn = String(idx - 9);
-    }
+    el.style.gridRow = '';
+    el.style.gridColumn = '';
     tray.appendChild(el);
   });
 }
