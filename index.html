@@ -46,7 +46,7 @@
     gap:8px;
     overflow:hidden;
   }
-  h1,.sub,.legend,.sectionTitle,.help,.clueHelp,.clueHelpTitle,.clueHelpText{display:none}
+  .sub,.legend,.sectionTitle,.help,.clueHelp,.clueHelpTitle,.clueHelpText{display:none}
   .topbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end;min-height:0}
   button,select,label{
     font:inherit;
@@ -212,39 +212,41 @@
       text-overflow:ellipsis;
     }
 
-    /* Napit yhdelle riville, pienet */
+    /* Napit yhdelle riville — kaikki 5 elementtiä mahtuvat */
     .topbar{
       justify-content:flex-start;
       flex-wrap:nowrap;
-      gap:4px;
-      overflow:hidden;
+      gap:3px;
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
     }
     button,select{
-      padding:5px 8px;
-      font-size:11px;
-      min-height:30px;
-      border-radius:8px;
+      padding:4px 7px;
+      font-size:10px;
+      min-height:28px;
+      border-radius:7px;
+      white-space:nowrap;
+      flex-shrink:0;
     }
-    label{font-size:0}
-    label select{font-size:11px}
+    label{font-size:0;flex-shrink:0}
+    label select{font-size:10px}
 
-    /* Pääasettelu: ruudukko + tray rinnakkain ylhäällä */
+    /* Pääasettelu */
     .layout{
       display:flex;
       flex-direction:column;
       gap:6px;
     }
 
-    /* Ylin rivi: board + tray rinnakkain */
-    .boardPanel{
-      width:100%;
-    }
+    /* Board + tray rinnakkain */
+    .boardPanel{width:100%}
     .gameArea{
       display:flex;
       flex-direction:row;
       gap:6px;
       align-items:flex-start;
       width:100%;
+      overflow:hidden;
     }
     .boardWrap{
       display:flex;
@@ -266,7 +268,7 @@
     .slot,.card{width:var(--boardCell);height:var(--boardCell)}
     .card svg{width:calc(var(--boardCell) - 6px);height:calc(var(--boardCell) - 6px)}
 
-    /* Status pienemmäksi */
+    /* Status */
     .status{
       font-size:11px;
       min-height:28px;
@@ -275,45 +277,39 @@
       white-space:normal;
     }
 
-    /* Tray: 2 korttia per rivi (pystysuuntainen), täyttää jäljelle jäävän tilan */
+    /* Tray: 2 saraketta, cell=30px, täsmälleen laskettu leveys */
     .tray{
-      flex:1 1 0;
-      min-width:0;
-      width:auto;
-      max-width:none;
+      flex:0 0 71px;
+      width:71px;
+      min-width:71px;
+      max-width:71px;
       grid-template-columns:repeat(2,1fr);
-      gap:4px;
-      padding:6px;
+      gap:3px;
+      padding:4px;
       border-radius:10px;
       align-self:flex-start;
+      overflow:visible;
     }
     #tray .card,#tray .trayPlaceholder{
-      border-radius:7px;
-    }
-
-    /* Vihjealue: sarake- ja rivivihjeet peräkkäin */
-    .cluePanel{
       width:100%;
-      overflow:visible;
-      padding-top:0;
+      aspect-ratio:1/1;
+      height:auto;
+      border-radius:5px;
     }
-    .clueGroups{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-    }
-    .groupTitle{
-      font-size:11px;
-      margin:0 0 5px;
-    }
+    #tray .card svg{width:22px;height:22px}
 
-    /* Mini-kortit: 24px */
+    /* Vihjealue */
+    .cluePanel{width:100%;overflow:visible;padding-top:0}
+    .clueGroups{display:flex;flex-direction:column;gap:8px}
+    .groupTitle{font-size:11px;margin:0 0 5px}
+
+    /* Mini-kortit */
     .mini{width:24px;height:24px;border-radius:6px}
     .mini svg{width:20px;height:20px}
     .miniGrid{width:22px;height:22px;padding:2px;gap:1px}
     .marker{font-size:11px;line-height:1}
 
-    /* Sarakevihjeet: yksi vaakarivi (max 4 vihjettä, mahtuvat ilman scrollia) */
+    /* Sarakevihjeet: yksi rivi */
     #colClues{
       display:flex;
       flex-direction:row;
@@ -333,7 +329,7 @@
     }
     .clue.col .icons{gap:3px}
 
-    /* Rivivihjeet: 3 per rivi, max 3 riviä */
+    /* Rivivihjeet: 3 per rivi */
     #rowClues{
       display:grid;
       grid-template-columns:repeat(3,1fr);
@@ -353,30 +349,15 @@
       gap:2px;
       flex-wrap:nowrap;
     }
-
-    /* Asetettavat palat: 2 saraketta, cell=30px, korkeus ~= boardSize */
-    .tray{
-      flex:0 0 auto;
-      width:calc(2*30px + 3px + 8px);
-      grid-template-columns:repeat(2,30px);
-      gap:3px;
-      padding:4px;
-      align-self:flex-start;
-    }
-    #tray .card,#tray .trayPlaceholder{
-      width:30px;
-      height:30px;
-      border-radius:5px;
-    }
-    #tray .card svg{width:22px;height:22px}
   }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Cardinal-henkinen logiikkapeli</h1>
+  
 
   <div class="topbar">
+  <h1 style="text-align:left">Cardinal-logiikkapeli</h1>
     <button class="primary" id="newBtn">Uusi</button>
     <label>Vaikeus:
       <select id="difficulty">
