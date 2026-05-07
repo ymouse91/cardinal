@@ -186,7 +186,7 @@
   /* ── iPhone pystynäyttö ── */
   @media (max-width: 430px) and (orientation:portrait){
     :root{
-      --boardCell:54px;
+      --boardCell:61px;
       --boardGap:4px;
       --boardPad:6px;
     }
@@ -307,69 +307,68 @@
       margin:0 0 5px;
     }
 
-    /* Sarakevihjeet: yksi vaakarivi, scroll jos ei mahdu */
+    /* Mini-kortit: 24px */
+    .mini{width:24px;height:24px;border-radius:6px}
+    .mini svg{width:20px;height:20px}
+    .miniGrid{width:22px;height:22px;padding:2px;gap:1px}
+    .marker{font-size:11px;line-height:1}
+
+    /* Sarakevihjeet: yksi vaakarivi (max 4 vihjettä, mahtuvat ilman scrollia) */
     #colClues{
       display:flex;
       flex-direction:row;
       flex-wrap:nowrap;
       overflow-x:auto;
-      gap:5px;
+      gap:4px;
       padding-bottom:2px;
       -webkit-overflow-scrolling:touch;
     }
     .clue.col{
       flex:0 0 auto;
-      min-width:54px;
+      min-width:36px;
       min-height:auto;
-      padding:6px 5px;
-      border-radius:9px;
-      gap:5px;
+      padding:4px;
+      border-radius:7px;
+      gap:3px;
     }
-    .clue.col .icons{gap:4px}
+    .clue.col .icons{gap:3px}
 
-    /* Rivivihjeet: kolme per rivi, max 3 riviä */
+    /* Rivivihjeet: 3 per rivi, max 3 riviä */
     #rowClues{
       display:grid;
       grid-template-columns:repeat(3,1fr);
-      gap:5px;
+      gap:4px;
     }
     .clue.row{
       flex-direction:row;
       min-width:0;
       min-height:auto;
-      padding:6px 7px;
-      border-radius:9px;
-      gap:4px;
+      padding:4px 5px;
+      border-radius:7px;
+      gap:3px;
       align-items:center;
     }
     .clue.row .icons{
       flex-direction:row;
-      gap:3px;
+      gap:2px;
       flex-wrap:nowrap;
     }
 
-    /* Mini-kortit pienemmät */
-    .mini{width:30px;height:30px}
-    .mini svg{width:24px;height:24px}
-    .miniGrid{width:26px;height:26px;padding:2px;gap:1px}
-    .marker{font-size:14px}
-
-    /* Asetettavat palat: leveys = jäljelle jäävä tila */
+    /* Asetettavat palat: 2 saraketta, cell=30px, korkeus ~= boardSize */
     .tray{
-      flex:1 1 0;
-      min-width:0;
-      max-width:calc(100vw - var(--boardSize) - 6px - 24px);
-      grid-template-columns:repeat(2,1fr);
+      flex:0 0 auto;
+      width:calc(2*30px + 3px + 8px);
+      grid-template-columns:repeat(2,30px);
       gap:3px;
       padding:4px;
+      align-self:flex-start;
     }
     #tray .card,#tray .trayPlaceholder{
-      width:100%;
-      aspect-ratio:1/1;
-      height:auto;
+      width:30px;
+      height:30px;
       border-radius:5px;
     }
-    #tray .card svg{width:75%;height:75%}
+    #tray .card svg{width:22px;height:22px}
   }
 </style>
 </head>
