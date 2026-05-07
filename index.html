@@ -2,7 +2,7 @@
 <html lang="fi">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1",viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -10,6 +10,9 @@
   <link rel="apple-touch-icon" href="icon192.png">
 <title>Cardinal-henkinen logiikkapeli</title>
 <style>
+  /* ═══════════════════════════════════════════
+     TOKENS
+  ═══════════════════════════════════════════ */
   :root{
     --bg:#141416;
     --panel:#202126;
@@ -22,35 +25,77 @@
     --shadow:0 8px 24px rgba(0,0,0,.28);
     --good:#58d37b;
     --bad:#ef5d5d;
-    --boardCell:94px;
-    --boardGap:6px;
-    --boardPad:10px;
-    --boardSize:calc(4 * var(--boardCell) + 3 * var(--boardGap) + 2 * var(--boardPad));
+    /* board sizing — overridden per breakpoint */
+    --bc:94px;   /* boardCell */
+    --bg2:6px;   /* boardGap  */
+    --bp:10px;   /* boardPad  */
+    --bs:calc(4*var(--bc) + 3*var(--bg2) + 2*var(--bp)); /* boardSize */
   }
+
+  /* ═══════════════════════════════════════════
+     BASE
+  ═══════════════════════════════════════════ */
   *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
+  html{
+    height:100%;
     margin:0;
-    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    background: linear-gradient(180deg,#1b1c20,#131417 30%,#101114);
+    background:#101114;
+  }
+  body{
+    min-height:100%;
+    margin:0;
+    font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    background:linear-gradient(180deg,#1b1c20,#131417 30%,#101114);
     color:var(--ink);
     overflow:hidden;
   }
+  h1{
+    grid-column:1;
+    grid-row:1;
+    display:block;
+    font-size:22px;
+    font-weight:800;
+    color:var(--accent);
+    margin:0;
+    letter-spacing:.04em;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    line-height:1.1;
+    align-self:center;
+  }
+  .sub,.legend,.sectionTitle,.help,.clueHelp,.clueHelpTitle,.clueHelpText{display:none}
+
+  /* ── Wrap ── */
   .wrap{
     width:min(1440px,100%);
     margin:0 auto;
     min-height:100svh;
-    padding:calc(6px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left));
+    padding:
+      calc(6px + env(safe-area-inset-top))
+      calc(8px + env(safe-area-inset-right))
+      calc(6px + env(safe-area-inset-bottom))
+      calc(8px + env(safe-area-inset-left));
     display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
     grid-template-rows:auto 1fr;
-    gap:8px;
+    gap:10px 14px;
     overflow:hidden;
   }
-  h1,.sub,.legend,.sectionTitle,.help,.clueHelp,.clueHelpTitle,.clueHelpText{display:none}
-  .topbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end;min-height:0}
-  button,select,label{
-    font:inherit;
+
+  /* ── Topbar ── */
+  .topbar{
+    grid-column:2;
+    grid-row:1;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:flex-end;
+    min-height:0;
+    align-self:start;
   }
+  button,select,label{font:inherit}
   button,select{
     background:#2b2d33;color:var(--ink);border:1px solid #4a4d56;border-radius:12px;
     padding:8px 12px;font-size:14px;cursor:pointer;min-height:40px;
@@ -60,7 +105,10 @@
   button:hover,select:hover{filter:brightness(1.08)}
   .primary{background:#3d3520;border-color:#a67e14}
 
+  /* ── Layout (desktop: sidebar) ── */
   .layout{
+    grid-column:1 / -1;
+    grid-row:2;
     display:grid;
     grid-template-columns:max-content minmax(0,1fr);
     gap:14px;
@@ -70,59 +118,90 @@
   }
   .panel{background:none;border:none;box-shadow:none}
   .boardPanel,.cluePanel{padding:0;min-height:0}
-  .boardPanel{width:var(--boardSize)}
-  .gameArea{display:flex;flex-direction:column;gap:8px;align-items:flex-start;width:var(--boardSize)}
-  .boardWrap{display:grid;gap:8px;width:var(--boardSize)}
+
+  /* ── Game area ── */
+  .boardPanel{width:var(--bs)}
+  .gameArea{display:flex;flex-direction:column;gap:8px;align-items:flex-start;width:var(--bs)}
+  .boardWrap{display:grid;gap:8px;width:var(--bs)}
+
+  /* ── Board ── */
   .board{
-    display:grid;grid-template-columns:repeat(4,var(--boardCell));grid-template-rows:repeat(4,var(--boardCell));gap:var(--boardGap);
-    background:#111216;padding:var(--boardPad);border-radius:16px;border:2px solid #e8e2d8;
-    width:var(--boardSize);
-    height:var(--boardSize);
+    display:grid;
+    grid-template-columns:repeat(4,var(--bc));
+    grid-template-rows:repeat(4,var(--bc));
+    gap:var(--bg2);
+    background:#111216;
+    padding:var(--bp);
+    border-radius:16px;
+    border:2px solid #e8e2d8;
+    width:var(--bs);
+    height:var(--bs);
   }
-  .slot{width:var(--boardCell);height:var(--boardCell);border-radius:13px;background:#0b0c0f;border:1px dashed #575b67;display:flex;align-items:center;justify-content:center}
+  .slot{
+    width:var(--bc);height:var(--bc);border-radius:13px;
+    background:#0b0c0f;border:1px dashed #575b67;
+    display:flex;align-items:center;justify-content:center;
+  }
   .slot.filled{border-style:solid;background:#111215}
-  .slot.fixed{border-color:#f0bf2c; box-shadow: inset 0 0 0 2px rgba(240,191,44,.35)}
-  .card{width:var(--boardCell);height:var(--boardCell);border-radius:12px;background:var(--card);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.2);border:1px solid rgba(0,0,0,.08);cursor:pointer;position:relative}
-  .card svg{width:calc(var(--boardCell) - 10px);height:calc(var(--boardCell) - 10px);overflow:visible}
+  .slot.fixed{border-color:#f0bf2c;box-shadow:inset 0 0 0 2px rgba(240,191,44,.35)}
+  .card{
+    width:var(--bc);height:var(--bc);border-radius:12px;
+    background:var(--card);display:flex;align-items:center;justify-content:center;
+    box-shadow:0 3px 8px rgba(0,0,0,.2);border:1px solid rgba(0,0,0,.08);
+    cursor:pointer;position:relative;
+  }
+  .card svg{width:calc(var(--bc) - 10px);height:calc(var(--bc) - 10px);overflow:visible}
   .card.selected{outline:none;box-shadow:0 0 0 2px var(--accent)}
 
+  /* ── Status ── */
   .status{
-    padding:8px 10px;border-radius:12px;background:#2b2d33;min-height:40px;font-size:13px;line-height:1.25;
+    padding:8px 10px;border-radius:12px;background:#2b2d33;
+    min-height:40px;font-size:13px;line-height:1.25;
     max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
   .ok{color:var(--good);font-weight:700}
   .err{color:var(--bad);font-weight:700}
 
+  /* ── Tray (desktop) ── */
   .tray{
     display:grid;grid-template-columns:repeat(6,1fr);grid-auto-rows:auto;gap:6px;
     background:#2f3138;padding:8px;border-radius:14px;border:1px solid #474a53;
-    width:var(--boardSize);
-    max-width:var(--boardSize);
-    min-width:var(--boardSize);
+    width:var(--bs);max-width:var(--bs);min-width:var(--bs);
     align-content:start;
   }
   #tray .card,#tray .trayPlaceholder{
-    width:100%;aspect-ratio:1 / 1;height:auto;justify-self:stretch;border-radius:9px;min-width:0;
+    width:100%;aspect-ratio:1/1;height:auto;justify-self:stretch;
+    border-radius:9px;min-width:0;
   }
   #tray .card svg{width:86%;height:86%}
   #tray .trayPlaceholder{border:1px dashed #4a4d56;background:rgba(255,255,255,.03)}
 
+  /* ── Clues ── */
   .cluePanel{display:flex;flex-direction:column;gap:12px;overflow:hidden;padding-top:2px}
   .clueGroups{display:grid;grid-template-columns:1fr;gap:18px;min-height:0;align-content:start}
   .clueGroup{min-width:0}
   .groupTitle{
-    font-size:13px;font-weight:800;color:#e3d9b4;margin:0 0 10px;letter-spacing:.05em;text-transform:uppercase;
+    font-size:13px;font-weight:800;color:#e3d9b4;margin:0 0 10px;
+    letter-spacing:.05em;text-transform:uppercase;
     display:flex;align-items:center;gap:7px;
   }
-  .axis{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:999px;background:#15161a;border:1px solid #8e7640;font-size:11px;color:#fff;font-weight:700}
+  .axis{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:20px;height:20px;border-radius:999px;
+    background:#15161a;border:1px solid #8e7640;font-size:11px;color:#fff;font-weight:700;
+  }
   .clues{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}
   #colClues{display:flex;flex-wrap:wrap;gap:12px;overflow:visible;align-items:flex-start}
   #rowClues{display:grid;grid-template-columns:repeat(3,max-content);gap:14px}
-
-  .clue{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:9px;padding:11px;border-radius:13px;background:#3a3c44;border:1px solid #4b4e57;min-width:84px;min-height:102px;cursor:pointer;user-select:none;transition:opacity .15s ease, filter .15s ease, box-shadow .15s ease, border-color .15s ease}
+  .clue{
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+    gap:9px;padding:11px;border-radius:13px;background:#3a3c44;border:1px solid #4b4e57;
+    min-width:84px;min-height:102px;cursor:pointer;user-select:none;
+    transition:opacity .15s,filter .15s,box-shadow .15s,border-color .15s;
+  }
   .clue.dimmed{opacity:.3;filter:saturate(.35)}
-  .clue.related{border-color:var(--accent);outline:none;box-shadow:0 0 0 2px var(--accent)}
-  .clue .icons{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:7px;min-width:auto;flex:0 0 auto}
+  .clue.related{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+  .clue .icons{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:7px;flex:0 0 auto}
   .clue.row{flex-direction:row;align-items:center;min-width:auto;min-height:auto;padding:12px 14px}
   .clue.row .icons{flex-direction:row;gap:6px}
   .clue.col{flex-direction:column;align-items:center}
@@ -131,23 +210,29 @@
   .mini{width:58px;height:58px;border-radius:11px}
   .mini svg{width:50px;height:50px}
   .marker{font-size:27px;color:#f0f0f0;line-height:1;display:flex;align-items:center;justify-content:center;text-align:center}
-  .miniGrid{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);width:50px;height:50px;gap:2px;padding:4px;border-radius:9px;background:#15161a;border:1px solid #53565e}
+  .miniGrid{
+    display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);
+    width:50px;height:50px;gap:2px;padding:4px;border-radius:9px;
+    background:#15161a;border:1px solid #53565e;
+  }
   .miniGrid .cell{width:100%;height:100%;border-radius:2px;background:#2f3239;border:1px solid #4a4d56}
   .miniGrid .cell.hit{background:#f0bf2c;border-color:#f3d680}
   .muted{color:var(--muted)}
-  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 
-  @media (max-width: 1280px){
-    :root{--boardCell:88px;--boardGap:6px;--boardPad:10px;}
-    .wrap{padding:calc(6px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left));gap:6px}
+  /* ═══════════════════════════════════════════
+     BREAKPOINTS — leveä desktop
+  ═══════════════════════════════════════════ */
+  @media (max-width:1280px){
+    :root{--bc:88px}
+    .wrap{gap:6px}
     .layout{gap:12px}
     .mini{width:50px;height:50px}
     .mini svg{width:42px;height:42px}
     .miniGrid{width:46px;height:46px}
   }
-
-  @media (max-width: 1150px){
-    :root{--boardCell:80px;--boardGap:6px;--boardPad:9px;}
+  @media (max-width:1150px){
+    :root{--bc:80px}
     button,select{padding:7px 10px;font-size:13px;min-height:36px}
     .layout{gap:10px}
     .status{font-size:12px;min-height:36px}
@@ -159,67 +244,114 @@
     .marker{font-size:20px}
   }
 
-  @media (max-width: 960px){
+  /* ═══════════════════════════════════════════
+     TABLETTI / KAPEA DESKTOP  (≤960px)
+     Layout pystysuoraan, tray alla ruudukkoa
+  ═══════════════════════════════════════════ */
+  @media (max-width:960px){
     body{overflow:auto}
-    .wrap{overflow:visible;min-height:auto}
-    .layout{grid-template-columns:1fr}
+    .wrap{overflow:visible;min-height:auto;grid-template-columns:1fr;grid-template-rows:auto auto 1fr}
+    h1{grid-column:1;grid-row:1}
+    .topbar{grid-column:1;grid-row:2;justify-content:flex-start}
+    .layout{grid-column:1;grid-row:3;grid-template-columns:1fr}
     .boardPanel,.gameArea,.boardWrap{width:100%}
     .board{margin:0 auto}
-    .tray{grid-template-columns:repeat(4,1fr);width:var(--boardSize);max-width:var(--boardSize);min-width:0;margin:0 auto}
-    .topbar{justify-content:flex-start}
+    .tray{grid-template-columns:repeat(4,1fr);width:var(--bs);max-width:var(--bs);min-width:0;margin:0 auto}
     #rowClues{grid-template-columns:repeat(auto-fit,max-content)}
   }
 
-  @media (max-width: 620px){
-    .board{grid-template-columns:repeat(4,66px);grid-template-rows:repeat(4,66px);gap:5px;width: calc(4 * 66px + 3 * 5px + 18px);height: calc(4 * 66px + 3 * 5px + 18px);padding:9px}
-    .slot,.card{width:66px;height:66px}
-    .card svg{width:58px;height:58px}
+  /* 481–620px: pienennä ruudukkoa mutta pidä tabletti-layout */
+  @media (max-width:620px) and (min-width:481px){
+    :root{--bc:66px;--bg2:5px;--bp:9px}
     .mini{width:34px;height:34px}
     .mini svg{width:28px;height:28px}
   }
 
+  /* ═══════════════════════════════════════════
+     LANDSCAPE-LUKKO kosketuslaitteella
+  ═══════════════════════════════════════════ */
   @media (hover:none) and (pointer:coarse) and (orientation:landscape){
     body{overflow:hidden}
     .wrap{overflow:hidden}
   }
 
-  /* ── iPhone pystynäyttö ── */
-  @media (max-width: 430px) and (orientation:portrait){
+  /* ═══════════════════════════════════════════
+     PUHELIN PYSTY  (≤480px)
+     Ruudukko vasemmalla + palat oikealla 2×8
+     Vihjeet alla, rivivihjeet kolmessa sarakkeessa
+  ═══════════════════════════════════════════ */
+  @media (max-width:480px){
+
     :root{
-      --boardCell:61px;
-      --boardGap:4px;
-      --boardPad:6px;
-    }
-    body{overflow:auto}
-    .wrap{
-      overflow:visible;
-      padding:calc(4px + env(safe-area-inset-top)) 6px calc(4px + env(safe-area-inset-bottom)) 6px;
-      grid-template-rows:auto auto 1fr;
-      gap:5px;
+      --page-pad-x:6px;
+      --game-gap:6px;
+      --tray-w:74px;
+      --bc:calc((100vw - (2 * var(--page-pad-x)) - var(--game-gap) - var(--tray-w) - (3 * var(--bg2)) - (2 * var(--bp))) / 4);
+      --bg2:4px;
+      --bp:6px;
     }
 
-    /* Otsikko näkyviin */
+    html{
+      width:100%;
+      min-width:0;
+      min-height:100%;
+      background:#101114;
+      overflow-x:hidden;
+    }
+    body{
+      width:100%;
+      min-width:0;
+      min-height:100svh;
+      background:linear-gradient(180deg,#1b1c20,#131417 30%,#101114);
+      overflow-x:hidden;
+      overflow-y:auto;
+    }
+
+    .wrap{
+      width:100%;
+      max-width:100vw;
+      min-height:100svh;
+      overflow:visible;
+      display:grid;
+      grid-template-columns:minmax(0,1fr);
+      grid-template-rows:auto auto auto;
+      gap:5px;
+      padding:
+        calc(4px + env(safe-area-inset-top))
+        calc(var(--page-pad-x) + env(safe-area-inset-right))
+        calc(4px + env(safe-area-inset-bottom))
+        calc(var(--page-pad-x) + env(safe-area-inset-left));
+    }
+
     h1{
+      grid-column:1;
+      grid-row:1;
       display:block;
       font-size:14px;
-      font-weight:700;
+      font-weight:800;
       color:var(--accent);
       margin:0;
-      letter-spacing:.04em;
-      text-transform:uppercase;
+      letter-spacing:.03em;
+      line-height:1.1;
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
+      max-width:100%;
     }
 
-    /* Napit yhdelle riville — kaikki 5 elementtiä mahtuvat */
     .topbar{
-      justify-content:flex-start;
+      grid-column:1;
+      grid-row:2;
+      display:flex;
       flex-wrap:nowrap;
+      justify-content:flex-start;
       gap:3px;
+      max-width:100%;
       overflow-x:auto;
+      overflow-y:hidden;
       -webkit-overflow-scrolling:touch;
     }
+
     button,select{
       padding:4px 7px;
       font-size:10px;
@@ -231,96 +363,130 @@
     label{font-size:0;flex-shrink:0}
     label select{font-size:10px}
 
-    /* Pääasettelu */
     .layout{
+      grid-column:1;
+      grid-row:3;
       display:flex;
       flex-direction:column;
       gap:6px;
-    }
-
-    /* Board + tray rinnakkain — ylikirjoita globaali width:var(--boardSize) */
-    .boardPanel{width:100% !important;max-width:none !important}
-    .gameArea{
-      display:flex !important;
-      flex-direction:row !important;
-      gap:6px;
-      align-items:flex-start;
-      width:100% !important;
-      max-width:none !important;
+      width:100%;
+      max-width:100%;
+      min-width:0;
       overflow:visible;
     }
+
+    .boardPanel{
+      width:100%;
+      max-width:100%;
+      min-width:0;
+    }
+
+    .gameArea{
+      display:grid;
+      grid-template-columns:minmax(0,var(--bs)) var(--tray-w);
+      gap:var(--game-gap);
+      align-items:start;
+      width:100%;
+      max-width:100%;
+      min-width:0;
+      overflow:hidden;
+    }
+
     .boardWrap{
       display:flex;
       flex-direction:column;
       gap:5px;
-      flex:0 0 auto !important;
-      width:var(--boardSize) !important;
-      max-width:var(--boardSize) !important;
+      width:var(--bs);
+      max-width:var(--bs);
+      min-width:0;
     }
-    .board{
-      grid-template-columns:repeat(4,var(--boardCell));
-      grid-template-rows:repeat(4,var(--boardCell));
-      gap:var(--boardGap);
-      padding:var(--boardPad);
-      border-radius:10px;
-      width:var(--boardSize);
-      height:var(--boardSize);
-      margin:0;
-    }
-    .slot,.card{width:var(--boardCell);height:var(--boardCell)}
-    .card svg{width:calc(var(--boardCell) - 6px);height:calc(var(--boardCell) - 6px)}
 
-    /* Status */
+    .board{
+      width:var(--bs);
+      height:var(--bs);
+      margin:0;
+      border-radius:10px;
+    }
+
+    .slot{border-radius:9px;min-width:0}
+    .card{border-radius:9px;min-width:0}
+    .card svg{
+      width:calc(var(--bc) - 6px);
+      height:calc(var(--bc) - 6px);
+    }
+
     .status{
       font-size:11px;
       min-height:28px;
       padding:5px 8px;
       border-radius:8px;
       white-space:normal;
+      max-width:100%;
     }
 
-    /* Tray: 2 saraketta, cell=30px, täsmälleen laskettu leveys */
     .tray{
-      flex:0 0 71px;
-      width:71px;
-      min-width:71px;
-      max-width:71px;
+      width:var(--tray-w);
+      min-width:var(--tray-w);
+      max-width:var(--tray-w);
+      display:grid;
       grid-template-columns:repeat(2,1fr);
+      grid-template-rows:repeat(8,1fr);
       gap:3px;
       padding:4px;
       border-radius:10px;
-      align-self:flex-start;
-      overflow:visible;
+      align-self:start;
+      margin:0;
     }
-    #tray .card,#tray .trayPlaceholder{
+
+    #tray .card,
+    #tray .trayPlaceholder{
       width:100%;
       aspect-ratio:1/1;
       height:auto;
       border-radius:5px;
+      min-width:0;
     }
-    #tray .card svg{width:22px;height:22px}
+    #tray .card svg{width:75%;height:75%}
 
-    /* Vihjealue */
-    .cluePanel{width:100%;overflow:visible;padding-top:0}
-    .clueGroups{display:flex;flex-direction:column;gap:8px}
-    .groupTitle{font-size:11px;margin:0 0 5px}
+    .cluePanel{
+      width:100%;
+      max-width:100%;
+      min-width:0;
+      overflow:visible;
+      padding-top:0;
+    }
 
-    /* Mini-kortit */
+    .clueGroups{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      width:100%;
+      max-width:100%;
+      min-width:0;
+    }
+
+    .groupTitle{
+      font-size:11px;
+      margin:0 0 4px;
+    }
+
     .mini{width:24px;height:24px;border-radius:6px}
     .mini svg{width:20px;height:20px}
     .miniGrid{width:22px;height:22px;padding:2px;gap:1px}
     .marker{font-size:11px;line-height:1}
 
-    /* Sarakevihjeet: yksi rivi */
     #colClues{
       display:flex;
       flex-direction:row;
       flex-wrap:nowrap;
       overflow-x:auto;
+      overflow-y:hidden;
       gap:4px;
       padding-bottom:2px;
+      max-width:100%;
       -webkit-overflow-scrolling:touch;
     }
+
     .clue.col{
       flex:0 0 auto;
       min-width:36px;
@@ -331,12 +497,15 @@
     }
     .clue.col .icons{gap:3px}
 
-    /* Rivivihjeet: 3 per rivi */
     #rowClues{
       display:grid;
-      grid-template-columns:repeat(3,1fr);
+      grid-template-columns:repeat(3,minmax(0,1fr));
       gap:4px;
+      width:100%;
+      max-width:100%;
+      min-width:0;
     }
+
     .clue.row{
       flex-direction:row;
       min-width:0;
@@ -350,13 +519,14 @@
       flex-direction:row;
       gap:2px;
       flex-wrap:nowrap;
+      min-width:0;
     }
   }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Cardinal-henkinen logiikkapeli</h1>
+  <h1>Cardinal-logiikkapeli 2.0</h1>
 
   <div class="topbar">
     <button class="primary" id="newBtn">Uusi</button>
@@ -1023,7 +1193,7 @@ function newPuzzle(){
       ? 'Minimi'
       : 'Punainen lintu';
 
-    setStatus(`Uusi pulma valmis. Taso: <span class="ok">${difficultyLabel}</span> · 
+    setStatus(`Taso: <span class="ok">${difficultyLabel}</span> · 
 Vihjeitä: <span class="ok">${currentPuzzle.clues.length}</span>`);
   }, 10);
 }
