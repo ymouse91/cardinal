@@ -670,6 +670,7 @@ let selectedCardId = null;
 let boardState = Array(16).fill(null);
 let trayOrder = [];
 let fixedPositions = new Set();
+let puzzleStartTime = 0;
 
 function initRelations(){
   const adjRow = Array(16).fill(0), adjCol = Array(16).fill(0), left2 = Array(16).fill(0), right2 = Array(16).fill(0), up2 = Array(16).fill(0), down2 = Array(16).fill(0),
@@ -951,8 +952,23 @@ function minimizeClues(baseClues, fixedAssignments=null){
   return minimal;
 }
 
+const MAX_ROW_CLUES = 9;
+const MAX_COL_CLUES = 9;
+
+function clueAxisCounts(clues){
+  return {
+    row: clues.filter(c => c.axis === 'row').length,
+    col: clues.filter(c => c.axis === 'col').length
+  };
+}
+
+function clueAxisCountsOk(clues){
+  const counts = clueAxisCounts(clues);
+  return counts.row <= MAX_ROW_CLUES && counts.col <= MAX_COL_CLUES;
+}
+
 function buildPuzzle(difficulty){
-  const maxAttempts = 20;
+  const maxAttempts = 60;
 
   for(let attempt=0; attempt<maxAttempts; attempt++){
     const solution = generateSolution();
@@ -975,7 +991,10 @@ function buildPuzzle(difficulty){
     let solved = null;
 
     for(const clue of ranked){
-      chosen.push(clue);
+      const testChosen = dedupeClues([...chosen, clue]);
+      if(!clueAxisCountsOk(testChosen)) continue;
+
+      chosen.splice(0, chosen.length, ...testChosen);
       const res = countSolutions(chosen, 2, fixedAssignments);
       if(res.count === 1){
         solved = res;
@@ -986,18 +1005,23 @@ function buildPuzzle(difficulty){
     if(!solved) continue;
 
     const minimal = minimizeClues(chosen, fixedAssignments);
+    if(!clueAxisCountsOk(minimal)) continue;
+
     let finalClues = [...minimal];
 
     if(difficulty === 'plus2bird'){
       const extras = ranked.filter(c => !finalClues.some(m => clueKey(m) === clueKey(c)));
       for(const extra of extras){
         const test = dedupeClues([...finalClues, extra]);
+        if(!clueAxisCountsOk(test)) continue;
         if(countSolutions(test, 2, fixedAssignments).count === 1){
           finalClues = test;
         }
         if(finalClues.length >= minimal.length + 2) break;
       }
     }
+
+    if(!clueAxisCountsOk(finalClues)) continue;
 
     return {
       solution,
@@ -1189,6 +1213,8 @@ function newPuzzle(){
     renderTray();
     renderClues(currentPuzzle.clues);
 
+    puzzleStartTime = Date.now();
+
     const difficultyLabel = difficulty === 'minimal'
       ? 'Minimi'
       : 'Punainen lintu';
@@ -1199,10 +1225,23 @@ Vihjeitä: <span class="ok">${currentPuzzle.clues.length}</span>`);
 }
 
 function checkBoard(){
-  if(boardState.some(v=>!v)){ setStatus('<span class="err">Ruudukko ei ole vielä täynnä.</span>'); return; }
+  if(boardState.some(v=>!v)){
+    setStatus('<span class="err">Ruudukko ei ole vielä täynnä.</span>');
+    return;
+  }
+
   const ok = boardState.every((id,i)=>id===currentPuzzle.solution[i]);
-  if(ok) setStatus('<span class="ok">Oikein! Ratkaisu on täsmälleen oikein.</span>');
-  else setStatus('<span class="err">Ei vielä oikein.</span>');
+
+  if(ok){
+    const elapsedMs = Date.now() - puzzleStartTime;
+    const totalSeconds = Math.floor(elapsedMs / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    const timeText = minutes > 0 ? `${minutes} min ${seconds} s` : `${seconds} s`;
+    setStatus(`<span class="ok">Oikein. Aikaa kului ${timeText}</span>`);
+  } else {
+    setStatus('<span class="err">Ei vielä oikein.</span>');
+  }
 }
 
 function showSolution(){
