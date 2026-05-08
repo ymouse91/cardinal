@@ -671,6 +671,7 @@ let boardState = Array(16).fill(null);
 let trayOrder = [];
 let fixedPositions = new Set();
 let puzzleStartTime = 0;
+let solutionWasShown = false;
 
 function initRelations(){
   const adjRow = Array(16).fill(0), adjCol = Array(16).fill(0), left2 = Array(16).fill(0), right2 = Array(16).fill(0), up2 = Array(16).fill(0), down2 = Array(16).fill(0),
@@ -1200,6 +1201,7 @@ function newPuzzle(){
     trayOrder = shuffle(CARD_DEFS.map(c => c.id));
     selectedCardId = null;
     fixedPositions = new Set();
+    solutionWasShown = false;
 
     if(difficulty === 'plus2bird'){
       const birdPos = currentPuzzle.solution.indexOf('birdRed');
@@ -1225,6 +1227,11 @@ Vihjeitä: <span class="ok">${currentPuzzle.clues.length}</span>`);
 }
 
 function checkBoard(){
+  if(solutionWasShown){
+    setStatus('<span class="err">Pulma on jo ratkaistu.</span>');
+    return;
+  }
+
   if(boardState.some(v=>!v)){
     setStatus('<span class="err">Ruudukko ei ole vielä täynnä.</span>');
     return;
@@ -1246,6 +1253,7 @@ function checkBoard(){
 
 function showSolution(){
   if(!currentPuzzle) return;
+  solutionWasShown = true;
   boardState = [...currentPuzzle.solution];
   selectedCardId=null;
   renderBoard(); renderTray();
